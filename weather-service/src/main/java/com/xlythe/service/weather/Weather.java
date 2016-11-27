@@ -247,7 +247,11 @@ public abstract class Weather implements Parcelable {
         return getCurrentCalendar().get(Calendar.HOUR_OF_DAY);
     }
 
-    private boolean before(int hour, int minute) {
+    public boolean before(Time time) {
+        return before(time.getHour(), time.getMinute());
+    }
+
+    public boolean before(int hour, int minute) {
         int h = getCurrentHour();
         int m = getCurrentMinute();
 
@@ -256,7 +260,11 @@ public abstract class Weather implements Parcelable {
         return false;
     }
 
-    private boolean after(int hour, int minute) {
+    public boolean after(Time time) {
+        return after(time.getHour(), time.getMinute());
+    }
+
+    public boolean after(int hour, int minute) {
         int h = getCurrentHour();
         int m = getCurrentMinute();
 
@@ -265,7 +273,11 @@ public abstract class Weather implements Parcelable {
         return false;
     }
 
-    private boolean equal(int hour, int minute) {
+    public boolean equal(Time time) {
+        return equal(time.getHour(), time.getMinute());
+    }
+
+    public boolean equal(int hour, int minute) {
         int h = getCurrentHour();
         int m = getCurrentMinute();
         return h == hour && m == minute;
