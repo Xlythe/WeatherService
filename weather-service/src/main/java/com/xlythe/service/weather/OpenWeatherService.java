@@ -2,6 +2,7 @@ package com.xlythe.service.weather;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.annotation.RequiresPermission;
 import android.util.Log;
@@ -19,9 +20,12 @@ public class OpenWeatherService extends LocationBasedService {
     private static final String TAG = OpenWeatherService.class.getSimpleName();
     private static final boolean DEBUG = false;
 
+    public static final String ACTION_DATA_CHANGED = "com.xlythe.service.weather.OPEN_WEATHER_DATA_CHANGED";
+
     private static final long FREQUENCY_WEATHER = 2 * 60 * 60; // 2 hours in seconds
     private static final long FLEX = 30 * 60; // 30min in seconds
 
+    private static final String BUNDLE_SCHEDULED = "scheduled";
     private static final String BUNDLE_API_KEY = "api_key";
 
     private static final String URL = "http://api.openweathermap.org/data/2.5/weather";
@@ -47,6 +51,19 @@ public class OpenWeatherService extends LocationBasedService {
                 .setPersisted(true)
                 .build();
         gcmNetworkManager.schedule(task);
+        getSharedPreferences(context).edit().putBoolean(BUNDLE_SCHEDULED, true).apply();
+    }
+
+    public static void cancel(Context context) {
+        context = context.getApplicationContext();
+        GcmNetworkManager gcmNetworkManager = GcmNetworkManager.getInstance(context);
+        gcmNetworkManager.cancelTask(OpenWeatherService.class.getSimpleName(), OpenWeatherService.class);
+        getSharedPreferences(context).edit().putBoolean(BUNDLE_SCHEDULED, false).apply();
+    }
+
+    public static boolean isScheduled(Context context) {
+        context = context.getApplicationContext();
+        return getSharedPreferences(context).getBoolean(BUNDLE_SCHEDULED, false);
     }
 
     private static SharedPreferences getSharedPreferences(Context context) {
@@ -74,13 +91,20 @@ public class OpenWeatherService extends LocationBasedService {
             throw new JSONException("Failed to parse data");
         }
         weather.save(this);
+        broadcast();
     }
 
+    private void broadcast() {
+        Intent intent = new Intent(ACTION_DATA_CHANGED);
+        intent.setPackage(getPackageName());
+        sendBroadcast(intent);
+    }
+
+    @SuppressWarnings("MissingPermission")
     @Override
     public void onInitializeTasks() {
-        if (getApiKey() == null) {
-            return;
+        if (OpenWeatherService.isScheduled(this)) {
+            OpenWeatherService.schedule(this, getApiKey());
         }
-        schedule(this, getApiKey());
     }
 }
