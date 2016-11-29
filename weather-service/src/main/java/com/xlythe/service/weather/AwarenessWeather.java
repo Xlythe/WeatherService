@@ -19,6 +19,9 @@ import static com.google.android.gms.awareness.state.Weather.CONDITION_RAINY;
 import static com.google.android.gms.awareness.state.Weather.CONDITION_SNOWY;
 import static com.google.android.gms.awareness.state.Weather.CONDITION_STORMY;
 
+/**
+ * Supports {@link #getCondition()}, {@link #getCelsius()}, and {@link #getFahrenheit()}
+ */
 public class AwarenessWeather extends Weather {
     private static final String TAG = AwarenessWeather.class.getSimpleName();
     private static final boolean DEBUG = true;
@@ -39,21 +42,6 @@ public class AwarenessWeather extends Weather {
 
     private AwarenessWeather(Parcel in) {
         super(in);
-    }
-
-    @Override
-    public Time getSunrise() {
-        throw new RuntimeException("Unsupported");
-    }
-
-    @Override
-    public Time getSunset() {
-        throw new RuntimeException("Unsupported");
-    }
-
-    @Override
-    public MoonPhase getMoonPhase() {
-        throw new RuntimeException("Unsupported");
     }
 
     @WorkerThread

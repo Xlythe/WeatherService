@@ -13,6 +13,9 @@ import java.util.Calendar;
 
 /**
  * Parses open weather map for the current OpenWeather at the user's lat/long
+ *
+ * Supports {@link #getCondition()}, {@link #getCelsius()}, {@link #getFahrenheit()},
+ * {@link #getWindKph()}, {@link #getWindMph()}, {@link #getSunrise()}, and {@link #getSunset()}
  */
 public class OpenWeather extends Weather {
     public static final String TAG = OpenWeather.class.getSimpleName();
@@ -67,11 +70,6 @@ public class OpenWeather extends Weather {
             return false;
         }
         return true;
-    }
-
-    @Override
-    public MoonPhase getMoonPhase() {
-        throw new RuntimeException("Unsupported");
     }
 
     private static Condition toCondition(String condition) {

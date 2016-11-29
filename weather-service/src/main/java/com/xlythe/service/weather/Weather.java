@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
 import android.support.annotation.WorkerThread;
 
 import java.io.Serializable;
@@ -130,9 +131,13 @@ public abstract class Weather implements Parcelable {
         this.condition = condition;
     }
 
+    @NonNull
     public Condition getCondition() {
         if (sCondition != null) {
             return sCondition;
+        }
+        if (condition == null) {
+            return Condition.SUNNY;
         }
         return condition;
     }
@@ -141,7 +146,11 @@ public abstract class Weather implements Parcelable {
         this.moonPhase = moonPhase;
     }
 
+    @NonNull
     public MoonPhase getMoonPhase() {
+        if (moonPhase == null) {
+            return MoonPhase.FULL_MOON;
+        }
         return moonPhase;
     }
 
@@ -149,9 +158,13 @@ public abstract class Weather implements Parcelable {
         this.sunrise = sunrise;
     }
 
+    @NonNull
     public Time getSunrise() {
         if (sSunrise != null) {
             return sSunrise;
+        }
+        if (sunrise == null) {
+            return new Time(6, 0);
         }
         return sunrise;
     }
@@ -160,9 +173,13 @@ public abstract class Weather implements Parcelable {
         this.sunset = sunset;
     }
 
+    @NonNull
     public Time getSunset() {
         if (sSunset != null) {
             return sSunset;
+        }
+        if (sunset == null) {
+            return new Time(18, 0);
         }
         return sunset;
     }
@@ -288,7 +305,7 @@ public abstract class Weather implements Parcelable {
     }
 
     public boolean isSunrise() {
-        invalidateCalendar();;
+        invalidateCalendar();
         boolean after = after(getSunrise().getHour() - 1, getSunrise().getMinute());
         boolean before = before(getSunrise().getHour() + 1, getSunrise().getMinute());
         return after && before;
