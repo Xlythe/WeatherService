@@ -7,10 +7,9 @@ import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.WorkerThread;
 
-import java.io.Serializable;
 import java.util.Calendar;
 
-public abstract class Weather implements Parcelable {
+public abstract class Weather implements ParcelableUtils.RestorableParcelable {
     private static final String BUNDLE_STATE = "state:";
 
     private static final Condition DEFAULT_CONDITION = Condition.SUNNY;
@@ -27,13 +26,34 @@ public abstract class Weather implements Parcelable {
         FULL_MOON, WANING_GIBBOUS, THIRD_QUARTER, WANING_CRESCENT;
     }
 
-    public static class Time implements Serializable {
+    public static class Time implements Parcelable {
+        public static final Parcelable.Creator<Time> CREATOR = new Parcelable.Creator<Time>() {
+            public Time createFromParcel(Parcel in) {
+                return new Time(in);
+            }
+
+            public Time[] newArray(int size) {
+                return new Time[size];
+            }
+        };
+
         private final int hour;
         private final int minute;
 
         public Time(int hour, int minute) {
             this.hour = hour;
             this.minute = minute;
+        }
+
+        protected Time(Parcel in) {
+            hour = in.readInt();
+            minute = in.readInt();
+        }
+
+        @Override
+        public void writeToParcel(Parcel out, int flags) {
+            out.writeInt(hour);
+            out.writeInt(minute);
         }
 
         public int getHour() {
@@ -61,6 +81,11 @@ public abstract class Weather implements Parcelable {
         @Override
         public String toString() {
             return hour + ":" + minute;
+        }
+
+        @Override
+        public int describeContents() {
+            return 0;
         }
     }
 
@@ -99,12 +124,13 @@ public abstract class Weather implements Parcelable {
         readFromParcel(in);
     }
 
-    protected void readFromParcel(Parcel in) {
+    @Override
+    public void readFromParcel(Parcel in) {
         tempC = in.readFloat();
         condition = (Condition) in.readSerializable();
         moonPhase = (MoonPhase) in.readSerializable();
-        sunrise = (Time) in.readSerializable();
-        sunset = (Time) in.readSerializable();
+        sunrise = in.readParcelable(Time.class.getClassLoader());
+        sunset = in.readParcelable(Time.class.getClassLoader());
         windKph = in.readInt();
         lastUpdate = in.readLong();
     }
@@ -114,8 +140,8 @@ public abstract class Weather implements Parcelable {
         out.writeFloat(tempC);
         out.writeSerializable(condition);
         out.writeSerializable(moonPhase);
-        out.writeSerializable(sunrise);
-        out.writeSerializable(sunset);
+        out.writeParcelable(sunrise, 0);
+        out.writeParcelable(sunset, 0);
         out.writeInt(windKph);
         out.writeLong(lastUpdate);
     }
@@ -209,34 +235,19 @@ public abstract class Weather implements Parcelable {
         return context.getSharedPreferences(getClass().getSimpleName(), Context.MODE_PRIVATE);
     }
 
-    private String getStateKey() {
-        return BUNDLE_STATE + getClass().getSimpleName();
-    }
-
     /**
      * Saves current state to disk, to be restored later with {@link #restore(Context)}
      */
     public void save(Context context) {
         lastUpdate = System.currentTimeMillis();
-        Parcel parcel = Parcel.obtain();
-        parcel.writeValue(this);
-        getSharedPreferences(context).edit().putString(getStateKey(), new String(parcel.marshall())).apply();
-        parcel.recycle();
+        getSharedPreferences(context).edit().putString(BUNDLE_STATE, ParcelableUtils.toString(this)).apply();
     }
 
     /**
      * Restores states that was previously saved in {@link #save(Context)}
      */
     public void restore(Context context) {
-        String data = getSharedPreferences(context).getString(getStateKey(), null);
-        if (data == null) {
-            return;
-        }
-        byte[] bytes = data.getBytes();
-        Parcel parcel = Parcel.obtain();
-        parcel.unmarshall(bytes, 0, bytes.length);
-        readFromParcel(parcel);
-        parcel.recycle();
+        ParcelableUtils.fromString(getSharedPreferences(context).getString(BUNDLE_STATE, null), this);
     }
 
     /**
