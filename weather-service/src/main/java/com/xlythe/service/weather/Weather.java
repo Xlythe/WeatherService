@@ -13,6 +13,11 @@ import java.util.Calendar;
 public abstract class Weather implements Parcelable {
     private static final String BUNDLE_STATE = "state:";
 
+    private static final Condition DEFAULT_CONDITION = Condition.SUNNY;
+    private static final MoonPhase DEFAULT_MOON_PHASE = MoonPhase.FULL_MOON;
+    private static final Time DEFAULT_SUNRISE = new Time(6, 0);
+    private static final Time DEFAULT_SUNSET = new Time(18, 0);
+
     public enum Condition {
         SNOW, RAIN, CLOUDY, SUNNY;
     }
@@ -137,7 +142,7 @@ public abstract class Weather implements Parcelable {
             return sCondition;
         }
         if (condition == null) {
-            return Condition.SUNNY;
+            return DEFAULT_CONDITION;
         }
         return condition;
     }
@@ -149,7 +154,7 @@ public abstract class Weather implements Parcelable {
     @NonNull
     public MoonPhase getMoonPhase() {
         if (moonPhase == null) {
-            return MoonPhase.FULL_MOON;
+            return DEFAULT_MOON_PHASE;
         }
         return moonPhase;
     }
@@ -164,7 +169,7 @@ public abstract class Weather implements Parcelable {
             return sSunrise;
         }
         if (sunrise == null) {
-            return new Time(6, 0);
+            return DEFAULT_SUNRISE;
         }
         return sunrise;
     }
@@ -179,7 +184,7 @@ public abstract class Weather implements Parcelable {
             return sSunset;
         }
         if (sunset == null) {
-            return new Time(18, 0);
+            return DEFAULT_SUNSET;
         }
         return sunset;
     }
