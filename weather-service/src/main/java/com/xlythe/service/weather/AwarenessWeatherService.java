@@ -35,7 +35,8 @@ public class AwarenessWeatherService extends GcmTaskService {
     }
 
     @RequiresPermission(allOf = {
-            Manifest.permission.ACCESS_FINE_LOCATION
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.RECEIVE_BOOT_COMPLETED
     })
     public static void schedule(Context context) {
         context = context.getApplicationContext();

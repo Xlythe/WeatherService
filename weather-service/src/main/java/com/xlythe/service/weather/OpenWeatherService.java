@@ -36,7 +36,8 @@ public class OpenWeatherService extends LocationBasedService {
     @RequiresPermission(allOf = {
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.ACCESS_COARSE_LOCATION,
-            Manifest.permission.INTERNET
+            Manifest.permission.INTERNET,
+            Manifest.permission.RECEIVE_BOOT_COMPLETED
     })
     public static void schedule(Context context, String apiKey) {
         if (DEBUG) Log.d(TAG, "Scheduling weather api");
