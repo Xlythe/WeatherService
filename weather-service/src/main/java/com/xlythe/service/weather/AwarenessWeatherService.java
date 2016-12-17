@@ -28,6 +28,7 @@ public class AwarenessWeatherService extends GcmTaskService {
     private static final long FLEX = 30 * 60; // 30min in seconds
 
     private static final String BUNDLE_SCHEDULED = "scheduled";
+    private static final String BUNDLE_SCHEDULE_TIME = "schedule_time";
     private static final HandlerThread sBackgroundThread = new HandlerThread("ServiceBackgroundThread");
 
     static {
@@ -47,9 +48,13 @@ public class AwarenessWeatherService extends GcmTaskService {
                 .setPeriod(FREQUENCY_WEATHER)
                 .setFlex(FLEX)
                 .setPersisted(true)
+                .setUpdateCurrent(true)
                 .build();
         gcmNetworkManager.schedule(task);
-        getSharedPreferences(context).edit().putBoolean(BUNDLE_SCHEDULED, true).apply();
+        getSharedPreferences(context).edit()
+                .putBoolean(BUNDLE_SCHEDULED, true)
+                .putLong(BUNDLE_SCHEDULE_TIME, System.currentTimeMillis())
+                .apply();
     }
 
     public static void cancel(Context context) {
@@ -61,7 +66,20 @@ public class AwarenessWeatherService extends GcmTaskService {
 
     public static boolean isScheduled(Context context) {
         context = context.getApplicationContext();
-        return getSharedPreferences(context).getBoolean(BUNDLE_SCHEDULED, false) && hasRunRecently(context, 2);
+        boolean isScheduled = getSharedPreferences(context).getBoolean(BUNDLE_SCHEDULED, false);
+
+        int multiplier = 2;
+        if (isScheduled && !hasRunRecently(context, multiplier)) {
+            // We are scheduled, but something has happened. We haven't run in the past 2 times.
+            // It's possible that we were unscheduled somehow (eg. app was reinstalled).
+            long lastSchedule = getSharedPreferences(context).getLong(BUNDLE_SCHEDULE_TIME, 0);
+            if (lastSchedule  < System.currentTimeMillis() - multiplier * FREQUENCY_WEATHER) {
+                // If we haven't rescheduled ourselves recently, then say we aren't scheduled.
+                return false;
+            }
+        }
+
+        return isScheduled;
     }
 
     private static boolean hasRunRecently(Context context, int multiplier) {
