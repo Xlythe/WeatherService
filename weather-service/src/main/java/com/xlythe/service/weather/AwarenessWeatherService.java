@@ -61,7 +61,13 @@ public class AwarenessWeatherService extends GcmTaskService {
 
     public static boolean isScheduled(Context context) {
         context = context.getApplicationContext();
-        return getSharedPreferences(context).getBoolean(BUNDLE_SCHEDULED, false);
+        return getSharedPreferences(context).getBoolean(BUNDLE_SCHEDULED, false) && hasRunRecently(context, 2);
+    }
+
+    private static boolean hasRunRecently(Context context, int multiplier) {
+        AwarenessWeather weather = new AwarenessWeather();
+        weather.restore(context);
+        return weather.getLastUpdate() > System.currentTimeMillis() - multiplier * FREQUENCY_WEATHER;
     }
 
     private static SharedPreferences getSharedPreferences(Context context) {
@@ -88,6 +94,10 @@ public class AwarenessWeatherService extends GcmTaskService {
 
     @Override
     public int onRunTask(final TaskParams params) {
+        if (hasRunRecently(this, 1)) {
+            return GcmNetworkManager.RESULT_SUCCESS;
+        }
+
         AwarenessWeather weather = new AwarenessWeather();
         if (!weather.fetch(this)) {
             return GcmNetworkManager.RESULT_RESCHEDULE;

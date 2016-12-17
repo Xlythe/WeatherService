@@ -10,6 +10,7 @@ import android.util.Log;
 import com.google.android.gms.gcm.GcmNetworkManager;
 import com.google.android.gms.gcm.PeriodicTask;
 import com.google.android.gms.gcm.Task;
+import com.google.android.gms.gcm.TaskParams;
 
 import org.json.JSONException;
 
@@ -64,7 +65,13 @@ public class OpenWeatherService extends LocationBasedService {
 
     public static boolean isScheduled(Context context) {
         context = context.getApplicationContext();
-        return getSharedPreferences(context).getBoolean(BUNDLE_SCHEDULED, false);
+        return getSharedPreferences(context).getBoolean(BUNDLE_SCHEDULED, false) && hasRunRecently(context, 2);
+    }
+
+    private static boolean hasRunRecently(Context context, int multiplier) {
+        AwarenessWeather weather = new AwarenessWeather();
+        weather.restore(context);
+        return weather.getLastUpdate() > System.currentTimeMillis() - multiplier * FREQUENCY_WEATHER;
     }
 
     private static SharedPreferences getSharedPreferences(Context context) {
@@ -73,6 +80,14 @@ public class OpenWeatherService extends LocationBasedService {
 
     private String getApiKey() {
         return getSharedPreferences(this).getString(BUNDLE_API_KEY, null);
+    }
+
+    @Override
+    public int onRunTask(TaskParams params) {
+        if (hasRunRecently(this, 1)) {
+            return GcmNetworkManager.RESULT_SUCCESS;
+        }
+        return super.onRunTask(params);
     }
 
     @Override
