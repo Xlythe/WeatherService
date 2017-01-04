@@ -3,6 +3,7 @@ package com.xlythe.service.weather;
 import android.content.Context;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
 import android.support.annotation.WorkerThread;
 import android.util.Log;
 
@@ -72,7 +73,8 @@ public class OpenWeather extends Weather {
         return true;
     }
 
-    private static Condition toCondition(String condition) {
+    private static Condition toCondition(@NonNull String condition) {
+        condition = condition.toLowerCase();
         if (condition.contains("snow")) {
             return Condition.SNOW;
         }
