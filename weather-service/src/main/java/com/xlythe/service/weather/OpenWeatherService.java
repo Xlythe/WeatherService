@@ -97,7 +97,11 @@ public class OpenWeatherService extends LocationBasedService {
     }
 
     private String getApiKey() {
-        return getSharedPreferences(this).getString(BUNDLE_API_KEY, null);
+        return OpenWeatherService.getApiKey(this);
+    }
+
+    public static String getApiKey(Context context) {
+        return getSharedPreferences(context).getString(BUNDLE_API_KEY, null);
     }
 
     @Override
