@@ -17,11 +17,11 @@ import org.json.JSONException;
 /**
  * Query open weather map for current weather conditions
  */
-public class OpenWeatherService extends LocationBasedService {
-    private static final String TAG = OpenWeatherService.class.getSimpleName();
+public class WUndergroundWeatherService extends LocationBasedService {
+    private static final String TAG = WUndergroundWeatherService.class.getSimpleName();
     private static final boolean DEBUG = false;
 
-    public static final String ACTION_DATA_CHANGED = "com.xlythe.service.weather.OPEN_WEATHER_DATA_CHANGED";
+    public static final String ACTION_DATA_CHANGED = "com.xlythe.service.weather.WUNDERGROUND_WEATHER_DATA_CHANGED";
 
     private static final long FREQUENCY_WEATHER = 2 * 60 * 60; // 2 hours in seconds
     private static final long FLEX = 30 * 60; // 30min in seconds
@@ -30,10 +30,7 @@ public class OpenWeatherService extends LocationBasedService {
     private static final String BUNDLE_SCHEDULE_TIME = "schedule_time";
     private static final String BUNDLE_API_KEY = "api_key";
 
-    private static final String URL = "http://api.openweathermap.org/data/2.5/weather";
-    private static final String PARAM_LAT = "lat";
-    private static final String PARAM_LNG = "lon";
-    private static final String PARAM_API_KEY = "appid";
+    private static final String URL = "http://api.wunderground.com/api/%s/geolookup/conditions/q/%s,%s.json"; // apiKey, latitude, longitude
 
     @RequiresPermission(allOf = {
             Manifest.permission.ACCESS_FINE_LOCATION,
@@ -46,8 +43,8 @@ public class OpenWeatherService extends LocationBasedService {
         getSharedPreferences(context).edit().putString(BUNDLE_API_KEY, apiKey).apply();
         GcmNetworkManager gcmNetworkManager = GcmNetworkManager.getInstance(context);
         PeriodicTask task = new PeriodicTask.Builder()
-                .setService(OpenWeatherService.class)
-                .setTag(OpenWeatherService.class.getSimpleName())
+                .setService(WUndergroundWeatherService.class)
+                .setTag(WUndergroundWeatherService.class.getSimpleName())
                 .setPeriod(FREQUENCY_WEATHER)
                 .setFlex(FLEX)
                 .setRequiredNetwork(Task.NETWORK_STATE_CONNECTED)
@@ -64,7 +61,7 @@ public class OpenWeatherService extends LocationBasedService {
     public static void cancel(Context context) {
         context = context.getApplicationContext();
         GcmNetworkManager gcmNetworkManager = GcmNetworkManager.getInstance(context);
-        gcmNetworkManager.cancelTask(OpenWeatherService.class.getSimpleName(), OpenWeatherService.class);
+        gcmNetworkManager.cancelTask(WUndergroundWeatherService.class.getSimpleName(), WUndergroundWeatherService.class);
         getSharedPreferences(context).edit().putBoolean(BUNDLE_SCHEDULED, false).apply();
     }
 
@@ -87,17 +84,17 @@ public class OpenWeatherService extends LocationBasedService {
     }
 
     private static boolean hasRunRecently(Context context, int multiplier) {
-        Weather weather = new OpenWeather();
+        Weather weather = new WUndergroundWeather();
         weather.restore(context);
         return weather.getLastUpdate() > System.currentTimeMillis() - multiplier * FREQUENCY_WEATHER;
     }
 
     private static SharedPreferences getSharedPreferences(Context context) {
-        return context.getSharedPreferences(OpenWeatherService.class.getSimpleName(), Context.MODE_PRIVATE);
+        return context.getSharedPreferences(WUndergroundWeatherService.class.getSimpleName(), Context.MODE_PRIVATE);
     }
 
     private String getApiKey() {
-        return OpenWeatherService.getApiKey(this);
+        return WUndergroundWeatherService.getApiKey(this);
     }
 
     public static String getApiKey(Context context) {
@@ -115,16 +112,13 @@ public class OpenWeatherService extends LocationBasedService {
     @Override
     protected String createUrl(double latitude, double longitude) {
         return new Builder()
-                .url(URL)
-                .param(PARAM_LAT, Double.toString(latitude))
-                .param(PARAM_LNG, Double.toString(longitude))
-                .param(PARAM_API_KEY, getApiKey())
+                .url(String.format(URL, getApiKey(), latitude, longitude))
                 .build();
     }
 
     @Override
     protected void parse(String json) throws JSONException {
-        OpenWeather weather = new OpenWeather();
+        WUndergroundWeather weather = new WUndergroundWeather();
         if (!weather.fetch(this, json)) {
             throw new JSONException("Failed to parse data");
         }
@@ -141,8 +135,8 @@ public class OpenWeatherService extends LocationBasedService {
     @SuppressWarnings("MissingPermission")
     @Override
     public void onInitializeTasks() {
-        if (OpenWeatherService.isScheduled(this)) {
-            OpenWeatherService.schedule(this, getApiKey());
+        if (WUndergroundWeatherService.isScheduled(this)) {
+            WUndergroundWeatherService.schedule(this, getApiKey());
         }
     }
 }
