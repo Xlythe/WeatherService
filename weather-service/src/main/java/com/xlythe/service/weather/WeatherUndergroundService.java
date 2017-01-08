@@ -17,8 +17,8 @@ import org.json.JSONException;
 /**
  * Query open weather map for current weather conditions
  */
-public class WUndergroundWeatherService extends LocationBasedService {
-    private static final String TAG = WUndergroundWeatherService.class.getSimpleName();
+public class WeatherUndergroundService extends LocationBasedService {
+    private static final String TAG = WeatherUndergroundService.class.getSimpleName();
     private static final boolean DEBUG = false;
 
     public static final String ACTION_DATA_CHANGED = "com.xlythe.service.weather.WUNDERGROUND_WEATHER_DATA_CHANGED";
@@ -43,8 +43,8 @@ public class WUndergroundWeatherService extends LocationBasedService {
         getSharedPreferences(context).edit().putString(BUNDLE_API_KEY, apiKey).apply();
         GcmNetworkManager gcmNetworkManager = GcmNetworkManager.getInstance(context);
         PeriodicTask task = new PeriodicTask.Builder()
-                .setService(WUndergroundWeatherService.class)
-                .setTag(WUndergroundWeatherService.class.getSimpleName())
+                .setService(WeatherUndergroundService.class)
+                .setTag(WeatherUndergroundService.class.getSimpleName())
                 .setPeriod(FREQUENCY_WEATHER)
                 .setFlex(FLEX)
                 .setRequiredNetwork(Task.NETWORK_STATE_CONNECTED)
@@ -61,7 +61,7 @@ public class WUndergroundWeatherService extends LocationBasedService {
     public static void cancel(Context context) {
         context = context.getApplicationContext();
         GcmNetworkManager gcmNetworkManager = GcmNetworkManager.getInstance(context);
-        gcmNetworkManager.cancelTask(WUndergroundWeatherService.class.getSimpleName(), WUndergroundWeatherService.class);
+        gcmNetworkManager.cancelTask(WeatherUndergroundService.class.getSimpleName(), WeatherUndergroundService.class);
         getSharedPreferences(context).edit().putBoolean(BUNDLE_SCHEDULED, false).apply();
     }
 
@@ -84,17 +84,17 @@ public class WUndergroundWeatherService extends LocationBasedService {
     }
 
     private static boolean hasRunRecently(Context context, int multiplier) {
-        Weather weather = new WUndergroundWeather();
+        Weather weather = new WeatherUnderground();
         weather.restore(context);
         return weather.getLastUpdate() > System.currentTimeMillis() - multiplier * FREQUENCY_WEATHER;
     }
 
     private static SharedPreferences getSharedPreferences(Context context) {
-        return context.getSharedPreferences(WUndergroundWeatherService.class.getSimpleName(), Context.MODE_PRIVATE);
+        return context.getSharedPreferences(WeatherUndergroundService.class.getSimpleName(), Context.MODE_PRIVATE);
     }
 
     private String getApiKey() {
-        return WUndergroundWeatherService.getApiKey(this);
+        return WeatherUndergroundService.getApiKey(this);
     }
 
     public static String getApiKey(Context context) {
@@ -118,7 +118,7 @@ public class WUndergroundWeatherService extends LocationBasedService {
 
     @Override
     protected void parse(String json) throws JSONException {
-        WUndergroundWeather weather = new WUndergroundWeather();
+        WeatherUnderground weather = new WeatherUnderground();
         if (!weather.fetch(this, json)) {
             throw new JSONException("Failed to parse data");
         }
@@ -135,8 +135,8 @@ public class WUndergroundWeatherService extends LocationBasedService {
     @SuppressWarnings("MissingPermission")
     @Override
     public void onInitializeTasks() {
-        if (WUndergroundWeatherService.isScheduled(this)) {
-            WUndergroundWeatherService.schedule(this, getApiKey());
+        if (WeatherUndergroundService.isScheduled(this)) {
+            WeatherUndergroundService.schedule(this, getApiKey());
         }
     }
 }

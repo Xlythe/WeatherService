@@ -19,8 +19,8 @@ public class UpdateReceiver extends BroadcastReceiver {
             if (OpenWeatherService.isScheduled(context)) {
                 OpenWeatherService.schedule(context, OpenWeatherService.getApiKey(context));
             }
-            if (WUndergroundWeatherService.isScheduled(context)) {
-                WUndergroundWeatherService.schedule(context, WUndergroundWeatherService.getApiKey(context));
+            if (WeatherUndergroundService.isScheduled(context)) {
+                WeatherUndergroundService.schedule(context, WeatherUndergroundService.getApiKey(context));
             }
         }
     }

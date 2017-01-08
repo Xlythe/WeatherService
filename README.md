@@ -8,7 +8,7 @@ Where to Download
 -----------------
 ```groovy
 dependencies {
-  compile 'com.xlythe:weather-service:1.0.2'
+  compile 'com.xlythe:weather-service:1.0.3'
 }
 ```
 
@@ -16,7 +16,7 @@ Permissions
 -----------
 The following permissions are required in your AndroidManfiest.xml
 ```xml
-<!-- For open weather -->
+<!-- For open weather or weather underground -->
 <uses-permission android:name="android.permission.INTERNET" />
 <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
@@ -37,6 +37,9 @@ AwarenessWeatherService.schedule(this);
 ```
 ```java
 OpenWeatherService.schedule(this, API_KEY);
+```
+```java
+WeatherUndergroundService.schedule(this, API_KEY);
 ```
 
 How to use

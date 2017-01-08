@@ -14,13 +14,13 @@ import org.json.JSONObject;
  *
  * Supports {@link #getCondition()}, {@link #getCelsius()}, and {@link #getFahrenheit()}
  */
-public class WUndergroundWeather extends Weather {
-    public static final String TAG = WUndergroundWeather.class.getSimpleName();
+public class WeatherUnderground extends Weather {
+    public static final String TAG = WeatherUnderground.class.getSimpleName();
     private static final boolean DEBUG = false;
 
     public static final Creator<Weather> CREATOR = new Creator<Weather>() {
         public Weather createFromParcel(Parcel in) {
-            return new WUndergroundWeather(in);
+            return new WeatherUnderground(in);
         }
 
         public Weather[] newArray(int size) {
@@ -28,11 +28,11 @@ public class WUndergroundWeather extends Weather {
         }
     };
 
-    public WUndergroundWeather() {
+    public WeatherUnderground() {
         super();
     }
 
-    private WUndergroundWeather(Parcel in) {
+    private WeatherUnderground(Parcel in) {
         super(in);
     }
 
@@ -46,11 +46,11 @@ public class WUndergroundWeather extends Weather {
             JSONObject object = new JSONObject(json).getJSONObject("current_observation");
 
             // Start persisting values
-            setCondition(WUndergroundWeather.toCondition(object.getString("weather")));
+            setCondition(WeatherUnderground.toCondition(object.getString("weather")));
             setCelsius((float) object.getDouble("temp_c"));
 
             if (DEBUG)
-                Log.d(TAG, "WUndergroundWeather set to " + getCondition() + ", " + getFahrenheit() + "F");
+                Log.d(TAG, "WeatherUnderground set to " + getCondition() + ", " + getFahrenheit() + "F");
         } catch (JSONException e) {
             e.printStackTrace();
             return false;
