@@ -24,8 +24,8 @@ public class AwarenessWeatherService extends GcmTaskService {
     public static final String ACTION_DATA_CHANGED = "com.xlythe.service.weather.AWARENESS_DATA_CHANGED";
     public static final String ACTION_RUN_MANUALLY = "com.xlythe.service.ACTION_RUN_MANUALLY";
 
-    private static final long FREQUENCY_WEATHER = 3 * 60 * 60; // 3 hours in seconds
-    private static final long FLEX = 30 * 60; // 30min in seconds
+    private static final long FREQUENCY_WEATHER = 30 * 60; // 30min in seconds
+    private static final long FLEX = 15 * 60; // 15min in seconds
 
     private static final String BUNDLE_SCHEDULED = "scheduled";
     private static final String BUNDLE_SCHEDULE_TIME = "schedule_time";
