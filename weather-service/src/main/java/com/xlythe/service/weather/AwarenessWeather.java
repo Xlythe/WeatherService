@@ -64,18 +64,18 @@ public class AwarenessWeather extends Weather {
 
             setCelsius(weather.getTemperature(CELSIUS));
             setCondition(Condition.SUNNY);
-            conditionLoop : for (int condition : weather.getConditions()) {
+            for (int condition : weather.getConditions()) {
                 switch (condition) {
                     case CONDITION_RAINY:
                     case CONDITION_STORMY:
                         setCondition(Condition.RAIN);
-                        break conditionLoop;
+                        break;
                     case CONDITION_SNOWY:
                         setCondition(Condition.SNOW);
-                        break conditionLoop;
+                        break;
                     case CONDITION_CLOUDY:
                         setCondition(Condition.CLOUDY);
-                        break conditionLoop;
+                        break;
                 }
             }
         } finally {
