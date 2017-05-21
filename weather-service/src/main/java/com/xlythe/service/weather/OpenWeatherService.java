@@ -26,11 +26,19 @@ public class OpenWeatherService extends LocationBasedService {
     private static final String BUNDLE_SCHEDULED = "scheduled";
     private static final String BUNDLE_SCHEDULE_TIME = "schedule_time";
     private static final String BUNDLE_API_KEY = "api_key";
+    private static final String BUNDLE_FREQUENCY = "frequency";
 
     private static final String URL = "http://api.openweathermap.org/data/2.5/weather";
     private static final String PARAM_LAT = "lat";
     private static final String PARAM_LNG = "lon";
     private static final String PARAM_API_KEY = "appid";
+
+    public static void setFrequency(Context context, long frequencyInMillis) {
+        getSharedPreferences(context).edit()
+                .putBoolean(BUNDLE_SCHEDULED, true)
+                .putLong(BUNDLE_FREQUENCY, frequencyInMillis)
+                .apply();
+    }
 
     @RequiresPermission(allOf = {
             Manifest.permission.ACCESS_FINE_LOCATION,
@@ -45,7 +53,7 @@ public class OpenWeatherService extends LocationBasedService {
         PeriodicTask task = new PeriodicTask.Builder()
                 .setService(OpenWeatherService.class)
                 .setTag(OpenWeatherService.class.getSimpleName())
-                .setPeriod(FREQUENCY_WEATHER)
+                .setPeriod(getSharedPreferences(context).getLong(BUNDLE_FREQUENCY, FREQUENCY_WEATHER))
                 .setFlex(FLEX)
                 .setRequiredNetwork(Task.NETWORK_STATE_CONNECTED)
                 .setPersisted(true)

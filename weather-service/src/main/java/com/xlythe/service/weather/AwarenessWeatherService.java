@@ -20,6 +20,14 @@ public class AwarenessWeatherService extends WeatherService {
 
     private static final String BUNDLE_SCHEDULED = "scheduled";
     private static final String BUNDLE_SCHEDULE_TIME = "schedule_time";
+    private static final String BUNDLE_FREQUENCY = "frequency";
+
+    public static void setFrequency(Context context, long frequencyInMillis) {
+        getSharedPreferences(context).edit()
+                .putBoolean(BUNDLE_SCHEDULED, true)
+                .putLong(BUNDLE_FREQUENCY, frequencyInMillis)
+                .apply();
+    }
 
     @RequiresPermission(allOf = {
             Manifest.permission.ACCESS_FINE_LOCATION,
@@ -31,7 +39,7 @@ public class AwarenessWeatherService extends WeatherService {
         PeriodicTask task = new PeriodicTask.Builder()
                 .setService(AwarenessWeatherService.class)
                 .setTag(AwarenessWeatherService.class.getSimpleName())
-                .setPeriod(FREQUENCY_WEATHER)
+                .setPeriod(getSharedPreferences(context).getLong(BUNDLE_FREQUENCY, FREQUENCY_WEATHER))
                 .setFlex(FLEX)
                 .setPersisted(true)
                 .setUpdateCurrent(true)

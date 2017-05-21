@@ -35,9 +35,17 @@ public class WeatherUndergroundService extends LocationBasedService {
     private static final String BUNDLE_SCHEDULE_TIME = "schedule_time";
     private static final String BUNDLE_API_KEY = "api_key";
     private static final String BUNDLE_TAG = "tag";
+    private static final String BUNDLE_FREQUENCY = "frequency";
 
     private static final String URL_WEATHER = "http://api.wunderground.com/api/%s/geolookup/conditions/q/%s,%s.json"; // apiKey, latitude, longitude
     private static final String URL_ASTRONOMY = "http://api.wunderground.com/api/%s/astronomy/q/%s,%s.json"; // apiKey, latitude, longitude
+
+    public static void setFrequency(Context context, long frequencyInMillis) {
+        getSharedPreferences(context).edit()
+                .putBoolean(BUNDLE_SCHEDULED, true)
+                .putLong(BUNDLE_FREQUENCY, frequencyInMillis)
+                .apply();
+    }
 
     @RequiresPermission(allOf = {
             Manifest.permission.ACCESS_FINE_LOCATION,
@@ -55,7 +63,7 @@ public class WeatherUndergroundService extends LocationBasedService {
         gcmNetworkManager.schedule(new PeriodicTask.Builder()
                 .setService(WeatherUndergroundService.class)
                 .setTag(WeatherUndergroundService.class.getSimpleName() + "_" + TAG_WEATHER)
-                .setPeriod(FREQUENCY_WEATHER)
+                .setPeriod(getSharedPreferences(context).getLong(BUNDLE_FREQUENCY, FREQUENCY_WEATHER))
                 .setFlex(FLEX_WEATHER)
                 .setRequiredNetwork(Task.NETWORK_STATE_CONNECTED)
                 .setPersisted(true)
