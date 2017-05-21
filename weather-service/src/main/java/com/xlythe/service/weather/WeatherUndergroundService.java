@@ -141,7 +141,7 @@ public class WeatherUndergroundService extends LocationBasedService {
 
             Bundle astronomyMetadata = new Bundle();
             astronomyMetadata.putString(BUNDLE_TAG, TAG_ASTRONOMY);
-            return super.onRunTask(new TaskParams(params.getTag(), weatherMetadata));
+            return super.onRunTask(new TaskParams(params.getTag(), astronomyMetadata));
         }
 
         return super.onRunTask(params);
