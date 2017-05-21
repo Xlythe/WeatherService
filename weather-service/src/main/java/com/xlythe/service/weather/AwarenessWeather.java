@@ -23,7 +23,6 @@ import static com.google.android.gms.awareness.state.Weather.CONDITION_STORMY;
  */
 public class AwarenessWeather extends Weather {
     private static final String TAG = AwarenessWeather.class.getSimpleName();
-    private static final boolean DEBUG = false;
 
     public static final Parcelable.Creator<Weather> CREATOR = new Parcelable.Creator<Weather>() {
         public Weather createFromParcel(Parcel in) {
@@ -78,6 +77,9 @@ public class AwarenessWeather extends Weather {
                         break;
                 }
             }
+
+            if (DEBUG)
+                Log.d(TAG, "Weather set to " + getCondition() + ", " + getFahrenheit() + "F");
         } finally {
             if (googleApiClient.isConnected()) {
                 googleApiClient.disconnect();

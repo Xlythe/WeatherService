@@ -10,6 +10,8 @@ import android.support.annotation.WorkerThread;
 import java.util.Calendar;
 
 public abstract class Weather implements ParcelableUtils.RestorableParcelable {
+    static final boolean DEBUG = false;
+
     private static final String BUNDLE_STATE = "state:";
 
     private static final Condition DEFAULT_CONDITION = Condition.SUNNY;

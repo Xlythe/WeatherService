@@ -17,7 +17,6 @@ import org.json.JSONObject;
  */
 public class WeatherUnderground extends Weather {
     public static final String TAG = WeatherUnderground.class.getSimpleName();
-    private static final boolean DEBUG = false;
 
     public static final Creator<Weather> CREATOR = new Creator<Weather>() {
         public Weather createFromParcel(Parcel in) {
@@ -45,6 +44,9 @@ public class WeatherUnderground extends Weather {
         try {
             JSONObject root = new JSONObject(json);
 
+            if (DEBUG)
+                Log.d(TAG, "WeatherUnderground json: " + root);
+
             if (root.has("current_observation")) {
                 // Parse the json
                 JSONObject object = root.getJSONObject("current_observation");
@@ -52,25 +54,31 @@ public class WeatherUnderground extends Weather {
                 // Start persisting values
                 setCondition(WeatherUnderground.toCondition(object.getString("weather")));
                 setCelsius((float) object.getDouble("temp_c"));
+
+                if (DEBUG)
+                    Log.d(TAG, "Weather set to " + getCondition() + ", " + getFahrenheit() + "F");
             } else if (root.has("moon_phase")) {
                 // Parse the json
                 JSONObject moon_phase = root.getJSONObject("moon_phase");
                 setMoonPhase(toMoonPhase(moon_phase.getInt("ageOfMoon")));
+                if (DEBUG)
+                    Log.d(TAG, "Moon phase set to " + getMoonPhase());
 
                 JSONObject sunrise = moon_phase.getJSONObject("sunrise");
                 setSunrise(new Time(sunrise.getInt("hour"), sunrise.getInt("minute")));
+                if (DEBUG)
+                    Log.d(TAG, "Sunrise set to " + getSunrise());
 
                 JSONObject sunset = moon_phase.getJSONObject("sunset");
                 setSunset(new Time(sunset.getInt("hour"), sunset.getInt("minute")));
+                if (DEBUG)
+                    Log.d(TAG, "Sunrise set to " + getSunrise());
             } else {
                 Log.w(TAG, "Unknown JSON object " + root);
                 return false;
             }
-
-            if (DEBUG)
-                Log.d(TAG, "WeatherUnderground set to " + toString());
         } catch (JSONException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Failed to parse WUnderground json", e);
             return false;
         }
         return true;

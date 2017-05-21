@@ -20,7 +20,6 @@ import java.util.Calendar;
  */
 public class OpenWeather extends Weather {
     public static final String TAG = OpenWeather.class.getSimpleName();
-    private static final boolean DEBUG = false;
 
     public static final Parcelable.Creator<Weather> CREATOR = new Parcelable.Creator<Weather>() {
         public Weather createFromParcel(Parcel in) {
@@ -47,23 +46,26 @@ public class OpenWeather extends Weather {
 
         try {
             // Parse the json
-            JSONObject object = new JSONObject(json);
-
-            // Start persisting values
-            setCondition(OpenWeather.toCondition(object.getJSONArray("weather").getJSONObject(0).getString("main")));
-            setCelsius(OpenWeather.toCelsius(object.getJSONObject("main").getDouble("temp")));
-            setWindKph(toKilometers(object.getJSONObject("wind").getDouble("speed")));
+            JSONObject root = new JSONObject(json);
 
             if (DEBUG)
-                Log.d(TAG, "OpenWeather set to " + getCondition() + ", " + getFahrenheit() + "F");
+                Log.d(TAG, "WeatherUnderground json: " + root);
 
-            setSunrise(new Time(getHour(1000 * object.getJSONObject("sys").getLong("sunrise")),
-                    getMinute(1000 * object.getJSONObject("sys").getLong("sunrise"))));
+            // Start persisting values
+            setCondition(OpenWeather.toCondition(root.getJSONArray("weather").getJSONObject(0).getString("main")));
+            setCelsius(OpenWeather.toCelsius(root.getJSONObject("main").getDouble("temp")));
+            setWindKph(toKilometers(root.getJSONObject("wind").getDouble("speed")));
+
+            if (DEBUG)
+                Log.d(TAG, "Weather set to " + getCondition() + ", " + getFahrenheit() + "F");
+
+            setSunrise(new Time(getHour(1000 * root.getJSONObject("sys").getLong("sunrise")),
+                    getMinute(1000 * root.getJSONObject("sys").getLong("sunrise"))));
             if (DEBUG)
                 Log.d(TAG, "Sunrise set to " + getSunrise());
 
-            setSunset(new Time(getHour(1000 * object.getJSONObject("sys").getLong("sunset")),
-                    getMinute(1000 * object.getJSONObject("sys").getLong("sunset"))));
+            setSunset(new Time(getHour(1000 * root.getJSONObject("sys").getLong("sunset")),
+                    getMinute(1000 * root.getJSONObject("sys").getLong("sunset"))));
             if (DEBUG)
                 Log.d(TAG, "Sunset set to " + getSunset());
         } catch (JSONException e) {
