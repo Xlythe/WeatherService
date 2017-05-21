@@ -20,7 +20,7 @@ public class OpenWeatherService extends LocationBasedService {
 
     public static final String ACTION_DATA_CHANGED = "com.xlythe.service.weather.OPEN_WEATHER_DATA_CHANGED";
 
-    private static final long FREQUENCY_WEATHER = 2 * 60 * 60; // 2 hours in seconds
+    private static final long FREQUENCY_WEATHER = 2 * 60 * 60; // 2hrs in seconds
     private static final long FLEX = 30 * 60; // 30min in seconds
 
     private static final String BUNDLE_SCHEDULED = "scheduled";
