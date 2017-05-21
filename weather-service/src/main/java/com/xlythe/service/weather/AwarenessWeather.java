@@ -24,7 +24,7 @@ import static com.google.android.gms.awareness.state.Weather.CONDITION_STORMY;
  */
 public class AwarenessWeather extends Weather {
     private static final String TAG = AwarenessWeather.class.getSimpleName();
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     public static final Parcelable.Creator<Weather> CREATOR = new Parcelable.Creator<Weather>() {
         public Weather createFromParcel(Parcel in) {
