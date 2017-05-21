@@ -9,7 +9,6 @@ import android.support.annotation.WorkerThread;
 import android.util.Log;
 
 import com.google.android.gms.awareness.Awareness;
-
 import com.google.android.gms.awareness.snapshot.WeatherResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 

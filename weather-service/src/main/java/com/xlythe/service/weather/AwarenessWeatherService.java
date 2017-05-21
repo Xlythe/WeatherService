@@ -2,15 +2,10 @@ package com.xlythe.service.weather;
 
 import android.Manifest;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Handler;
-import android.os.HandlerThread;
 import android.support.annotation.RequiresPermission;
-import android.util.Log;
 
 import com.google.android.gms.gcm.GcmNetworkManager;
-import com.google.android.gms.gcm.GcmTaskService;
 import com.google.android.gms.gcm.PeriodicTask;
 import com.google.android.gms.gcm.TaskParams;
 

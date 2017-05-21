@@ -1,17 +1,12 @@
 package com.xlythe.service.weather;
 
 import android.Manifest;
-import android.content.Intent;
 import android.location.Location;
-import android.os.Handler;
-import android.os.HandlerThread;
-import android.os.Looper;
 import android.util.Log;
 import android.util.Pair;
 
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.gcm.GcmNetworkManager;
-import com.google.android.gms.gcm.GcmTaskService;
 import com.google.android.gms.gcm.TaskParams;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
