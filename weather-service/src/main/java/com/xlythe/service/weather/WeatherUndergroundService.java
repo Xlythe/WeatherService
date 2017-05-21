@@ -76,6 +76,7 @@ public class WeatherUndergroundService extends LocationBasedService {
             long lastSchedule = getSharedPreferences(context).getLong(BUNDLE_SCHEDULE_TIME, 0);
             if (lastSchedule  < System.currentTimeMillis() - multiplier * FREQUENCY_WEATHER) {
                 // If we haven't rescheduled ourselves recently, then say we aren't scheduled.
+                Log.w(TAG, "Reporting as unscheduled because we have not run recently");
                 return false;
             }
         }
