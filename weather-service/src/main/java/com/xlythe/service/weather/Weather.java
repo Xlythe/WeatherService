@@ -16,6 +16,8 @@ public abstract class Weather implements ParcelableUtils.RestorableParcelable {
     private static final MoonPhase DEFAULT_MOON_PHASE = MoonPhase.FULL_MOON;
     private static final Time DEFAULT_SUNRISE = new Time(6, 0);
     private static final Time DEFAULT_SUNSET = new Time(18, 0);
+    private static final int DEFAULT_TEMP_C = 20;
+    private static final int DEFAULT_WIND_KPH = 0;
 
     public enum Condition {
         SNOW, RAIN, CLOUDY, SUNNY;
@@ -110,12 +112,12 @@ public abstract class Weather implements ParcelableUtils.RestorableParcelable {
         sFakeTime = timeInMillis;
     }
 
-    private float tempC;
-    private Condition condition;
-    private MoonPhase moonPhase;
-    private Time sunrise;
-    private Time sunset;
-    private int windKph;
+    private float tempC = DEFAULT_TEMP_C;
+    private Condition condition = DEFAULT_CONDITION;
+    private MoonPhase moonPhase = DEFAULT_MOON_PHASE;
+    private Time sunrise = DEFAULT_SUNRISE;
+    private Time sunset = DEFAULT_SUNSET;
+    private int windKph = DEFAULT_WIND_KPH;
     private long lastUpdate;
 
     public Weather() {}
