@@ -103,24 +103,6 @@ public class WeatherUndergroundService extends LocationBasedService {
     }
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        final String action = intent == null ? null : intent.getAction();
-        if (DEBUG) Log.d(TAG, "onStartCommand() action=" + action);
-        if (ACTION_RUN_MANUALLY.equals(action) && isScheduled(this)) {
-            post(new Runnable() {
-                @Override
-                public void run() {
-                    onRunTask(new TaskParams(action));
-                    stopSelf();
-                }
-            });
-            return START_NOT_STICKY;
-        } else {
-            return super.onStartCommand(intent, flags, startId);
-        }
-    }
-
-    @Override
     public int onRunTask(TaskParams params) {
         if (hasRunRecently(this, 1)) {
             return GcmNetworkManager.RESULT_SUCCESS;
