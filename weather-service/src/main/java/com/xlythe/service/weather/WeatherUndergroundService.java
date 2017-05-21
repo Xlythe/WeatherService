@@ -3,12 +3,14 @@ package com.xlythe.service.weather;
 import android.Manifest;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Bundle;
 import android.support.annotation.RequiresPermission;
 import android.util.Log;
 
 import com.google.android.gms.gcm.GcmNetworkManager;
 import com.google.android.gms.gcm.PeriodicTask;
 import com.google.android.gms.gcm.Task;
+import com.google.android.gms.gcm.TaskParams;
 
 import org.json.JSONException;
 
@@ -21,14 +23,21 @@ public class WeatherUndergroundService extends LocationBasedService {
 
     public static final String ACTION_DATA_CHANGED = "com.xlythe.service.weather.WUNDERGROUND_WEATHER_DATA_CHANGED";
 
-    private static final long FREQUENCY_WEATHER = 2 * 60 * 60; // 2 hours in seconds
-    private static final long FLEX = 30 * 60; // 30min in seconds
+    private static final String TAG_WEATHER = "weather";
+    private static final long FREQUENCY_WEATHER = 2 * 60 * 60; // 2hrs in seconds
+    private static final long FLEX_WEATHER = 30 * 60; // 30min in seconds
+
+    private static final String TAG_ASTRONOMY = "astronomy";
+    private static final long FREQUENCY_ASTRONOMY = 23 * 60 * 60; // 23hrs in seconds
+    private static final long FLEX_ASTRONOMY = 60 * 60; // 1hr in seconds
 
     private static final String BUNDLE_SCHEDULED = "scheduled";
     private static final String BUNDLE_SCHEDULE_TIME = "schedule_time";
     private static final String BUNDLE_API_KEY = "api_key";
+    private static final String BUNDLE_TAG = "tag";
 
-    private static final String URL = "http://api.wunderground.com/api/%s/geolookup/conditions/q/%s,%s.json"; // apiKey, latitude, longitude
+    private static final String URL_WEATHER = "http://api.wunderground.com/api/%s/geolookup/conditions/q/%s,%s.json"; // apiKey, latitude, longitude
+    private static final String URL_ASTRONOMY = "http://api.wunderground.com/api/%s/astronomy/q/%s,%s.json"; // apiKey, latitude, longitude
 
     @RequiresPermission(allOf = {
             Manifest.permission.ACCESS_FINE_LOCATION,
@@ -40,16 +49,33 @@ public class WeatherUndergroundService extends LocationBasedService {
         if (DEBUG) Log.d(TAG, "Scheduling weather api");
         getSharedPreferences(context).edit().putString(BUNDLE_API_KEY, apiKey).apply();
         GcmNetworkManager gcmNetworkManager = GcmNetworkManager.getInstance(context);
-        PeriodicTask task = new PeriodicTask.Builder()
+
+        Bundle weatherMetadata = new Bundle();
+        weatherMetadata.putString(BUNDLE_TAG, TAG_WEATHER);
+        gcmNetworkManager.schedule(new PeriodicTask.Builder()
                 .setService(WeatherUndergroundService.class)
-                .setTag(WeatherUndergroundService.class.getSimpleName())
+                .setTag(WeatherUndergroundService.class.getSimpleName() + "_" + TAG_WEATHER)
                 .setPeriod(FREQUENCY_WEATHER)
-                .setFlex(FLEX)
+                .setFlex(FLEX_WEATHER)
                 .setRequiredNetwork(Task.NETWORK_STATE_CONNECTED)
                 .setPersisted(true)
                 .setUpdateCurrent(true)
-                .build();
-        gcmNetworkManager.schedule(task);
+                .setExtras(weatherMetadata)
+                .build());
+
+        Bundle astronomyMetadata = new Bundle();
+        astronomyMetadata.putString(BUNDLE_TAG, TAG_ASTRONOMY);
+        gcmNetworkManager.schedule(new PeriodicTask.Builder()
+                .setService(WeatherUndergroundService.class)
+                .setTag(WeatherUndergroundService.class.getSimpleName() + "_" + TAG_ASTRONOMY)
+                .setPeriod(FREQUENCY_ASTRONOMY)
+                .setFlex(FLEX_ASTRONOMY)
+                .setRequiredNetwork(Task.NETWORK_STATE_CONNECTED)
+                .setPersisted(true)
+                .setUpdateCurrent(true)
+                .setExtras(astronomyMetadata)
+                .build());
+
         getSharedPreferences(context).edit()
                 .putBoolean(BUNDLE_SCHEDULED, true)
                 .putLong(BUNDLE_SCHEDULE_TIME, System.currentTimeMillis())
@@ -102,10 +128,36 @@ public class WeatherUndergroundService extends LocationBasedService {
     }
 
     @Override
+    public int onRunTask(final TaskParams params) {
+        // Extras are null when running manually. In this special case, we'd like to run both
+        // weather and astronomy queries.
+        if (params.getExtras() == null) {
+            Bundle weatherMetadata = new Bundle();
+            weatherMetadata.putString(BUNDLE_TAG, TAG_WEATHER);
+            int status = super.onRunTask(new TaskParams(params.getTag(), weatherMetadata));
+            if (status != GcmNetworkManager.RESULT_SUCCESS) {
+                return status;
+            }
+
+            Bundle astronomyMetadata = new Bundle();
+            astronomyMetadata.putString(BUNDLE_TAG, TAG_ASTRONOMY);
+            return super.onRunTask(new TaskParams(params.getTag(), weatherMetadata));
+        }
+
+        return super.onRunTask(params);
+    }
+
+    @Override
     protected String createUrl(double latitude, double longitude) {
-        return new Builder()
-                .url(String.format(URL, getApiKey(), latitude, longitude))
-                .build();
+        if (TAG_ASTRONOMY.equals(getParams().getString(BUNDLE_TAG))) {
+            return new Builder()
+                    .url(String.format(URL_ASTRONOMY, getApiKey(), latitude, longitude))
+                    .build();
+        } else {
+            return new Builder()
+                    .url(String.format(URL_WEATHER, getApiKey(), latitude, longitude))
+                    .build();
+        }
     }
 
     @Override

@@ -19,7 +19,7 @@ import static com.google.android.gms.awareness.state.Weather.CONDITION_SNOWY;
 import static com.google.android.gms.awareness.state.Weather.CONDITION_STORMY;
 
 /**
- * Supports {@link #getCondition()}, {@link #getCelsius()}, and {@link #getFahrenheit()}
+ * Supports {@link #getCondition()}, {@link #getCelsius()}, and {@link #getFahrenheit()}.
  */
 public class AwarenessWeather extends Weather {
     private static final String TAG = AwarenessWeather.class.getSimpleName();

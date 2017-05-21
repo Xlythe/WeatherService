@@ -2,6 +2,7 @@ package com.xlythe.service.weather;
 
 import android.Manifest;
 import android.location.Location;
+import android.os.Bundle;
 import android.util.Log;
 import android.util.Pair;
 
@@ -34,6 +35,8 @@ public abstract class LocationBasedService extends WeatherService {
     private static final long LOCATION_TIMEOUT_IN_SECONDS = 10;
     private static final int NETWORK_TIMEOUT_IN_MILLIS = 10 * 1000;
 
+    private Bundle mParams;
+
     @Override
     public int onRunTask(final TaskParams params) {
         if (DEBUG) Log.d(TAG, "Building GoogleApiClient");
@@ -53,6 +56,8 @@ public abstract class LocationBasedService extends WeatherService {
             }
 
             try {
+                mParams = params.getExtras();
+
                 if (DEBUG) Log.d(TAG, "Creating url");
                 String requestUrl = createUrl(location);
                 if (DEBUG) Log.d(TAG, requestUrl);
@@ -75,6 +80,10 @@ public abstract class LocationBasedService extends WeatherService {
         }
 
         return GcmNetworkManager.RESULT_SUCCESS;
+    }
+
+    protected Bundle getParams() {
+        return mParams;
     }
 
     @SuppressWarnings({"MissingPermission"})

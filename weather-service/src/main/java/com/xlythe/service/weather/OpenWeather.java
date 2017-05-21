@@ -13,10 +13,10 @@ import org.json.JSONObject;
 import java.util.Calendar;
 
 /**
- * Parses open weather map for the current OpenWeather at the user's lat/long
+ * Parses OpenWeather for the current weather at the user's lat/lng.
  *
  * Supports {@link #getCondition()}, {@link #getCelsius()}, {@link #getFahrenheit()},
- * {@link #getWindKph()}, {@link #getWindMph()}, {@link #getSunrise()}, and {@link #getSunset()}
+ * {@link #getWindKph()}, {@link #getWindMph()}, {@link #getSunrise()}, and {@link #getSunset()}.
  */
 public class OpenWeather extends Weather {
     public static final String TAG = OpenWeather.class.getSimpleName();
