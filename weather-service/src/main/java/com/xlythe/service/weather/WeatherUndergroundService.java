@@ -66,48 +66,41 @@ public class WeatherUndergroundService extends LocationBasedService {
     }
 
     public static boolean isScheduled(Context context) {
-        context = context.getApplicationContext();
-        boolean isScheduled = getSharedPreferences(context).getBoolean(BUNDLE_SCHEDULED, false);
-
-        int multiplier = 2;
-        if (isScheduled && !hasRunRecently(context, multiplier)) {
-            // We are scheduled, but something has happened. We haven't run in the past 2 times.
-            // It's possible that we were unscheduled somehow (eg. app was reinstalled).
-            long lastSchedule = getSharedPreferences(context).getLong(BUNDLE_SCHEDULE_TIME, 0);
-            if (lastSchedule  < System.currentTimeMillis() - multiplier * FREQUENCY_WEATHER) {
-                // If we haven't rescheduled ourselves recently, then say we aren't scheduled.
-                Log.w(TAG, "Reporting as unscheduled because we have not run recently");
-                return false;
-            }
-        }
-
-        return isScheduled;
-    }
-
-    private static boolean hasRunRecently(Context context, int multiplier) {
-        Weather weather = new WeatherUnderground();
-        weather.restore(context);
-        return weather.getLastUpdate() > System.currentTimeMillis() - multiplier * FREQUENCY_WEATHER;
-    }
-
-    private static SharedPreferences getSharedPreferences(Context context) {
-        return context.getSharedPreferences(WeatherUndergroundService.class.getSimpleName(), Context.MODE_PRIVATE);
-    }
-
-    private String getApiKey() {
-        return WeatherUndergroundService.getApiKey(this);
+        return getSharedPreferences(context).getBoolean(BUNDLE_SCHEDULED, false);
     }
 
     public static String getApiKey(Context context) {
         return getSharedPreferences(context).getString(BUNDLE_API_KEY, null);
     }
 
+    private static SharedPreferences getSharedPreferences(Context context) {
+        return context.getSharedPreferences(WeatherUndergroundService.class.getSimpleName(), Context.MODE_PRIVATE);
+    }
+
     @Override
-    public int onRunTask(TaskParams params) {
-        if (hasRunRecently(this, 1)) {
-            return GcmNetworkManager.RESULT_SUCCESS;
-        }
-        return super.onRunTask(params);
+    protected String getApiKey() {
+        return getApiKey(this);
+    }
+
+    @Override
+    protected boolean isScheduled() {
+        return isScheduled(this);
+    }
+
+    @RequiresPermission(allOf = {
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.INTERNET,
+            Manifest.permission.RECEIVE_BOOT_COMPLETED
+    })
+    @Override
+    protected void schedule(String apiKey) {
+        schedule(this, apiKey);
+    }
+
+    @Override
+    protected void cancel() {
+        cancel(this);
     }
 
     @Override
@@ -124,20 +117,6 @@ public class WeatherUndergroundService extends LocationBasedService {
             throw new JSONException("Failed to parse data");
         }
         weather.save(this);
-        broadcast();
-    }
-
-    private void broadcast() {
-        Intent intent = new Intent(ACTION_DATA_CHANGED);
-        intent.setPackage(getPackageName());
-        sendBroadcast(intent);
-    }
-
-    @SuppressWarnings("MissingPermission")
-    @Override
-    public void onInitializeTasks() {
-        if (WeatherUndergroundService.isScheduled(this)) {
-            WeatherUndergroundService.schedule(this, getApiKey());
-        }
+        broadcast(ACTION_DATA_CHANGED);
     }
 }

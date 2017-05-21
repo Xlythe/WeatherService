@@ -32,73 +32,15 @@ import java.util.concurrent.TimeUnit;
 /**
  * A service that first grabs the user's most recent location before querying a website.
  */
-public abstract class LocationBasedService extends GcmTaskService {
+public abstract class LocationBasedService extends WeatherService {
     private static final String TAG = LocationBasedService.class.getSimpleName();
-    private static final boolean DEBUG = false;
 
     public static final String ACTION_RUN_MANUALLY = "com.xlythe.service.ACTION_RUN_MANUALLY";
     private static final long LOCATION_TIMEOUT_IN_SECONDS = 10;
     private static final int NETWORK_TIMEOUT_IN_MILLIS = 10 * 1000;
-    private static final HandlerThread sBackgroundThread = new HandlerThread("ServiceBackgroundThread");
-
-    static {
-        sBackgroundThread.start();
-    }
-
-    private Handler mHandler;
-
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        final String action = intent == null ? null : intent.getAction();
-        if (DEBUG) Log.d(TAG, "onStartCommand() action=" + action);
-        if (ACTION_RUN_MANUALLY.equals(action)) {
-            if (!ensureHandler()) {
-                Log.d(TAG, "Attempted to manually run task, but already running.");
-                return START_NOT_STICKY;
-            }
-
-            mHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    onRunTask(new TaskParams(action));
-                    stopSelf();
-                }
-            });
-            return START_NOT_STICKY;
-        } else {
-            return super.onStartCommand(intent, flags, startId);
-        }
-    }
-
-    private synchronized boolean ensureHandler() {
-        if (mHandler == null) {
-            mHandler = new Handler(sBackgroundThread.getLooper());
-            return true;
-        }
-        return false;
-    }
 
     @Override
     public int onRunTask(final TaskParams params) {
-        if (Looper.myLooper() != sBackgroundThread.getLooper()) {
-            if (DEBUG) Log.w(TAG, "onRunTask called on wrong thread. Moving to a safe thread.");
-            ensureHandler();
-            final StatusCountDownLatch latch = new StatusCountDownLatch(1);
-            mHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    latch.setStatus(onRunTask(params));
-                    latch.countDown();
-                }
-            });
-            try {
-                latch.await();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            return latch.getStatus();
-        }
-
         if (DEBUG) Log.d(TAG, "Building GoogleApiClient");
         GoogleApiClient googleApiClient = new GoogleApiClient.Builder(getApplicationContext())
                 .addApi(LocationServices.API)
@@ -240,21 +182,7 @@ public abstract class LocationBasedService extends GcmTaskService {
         }
     }
 
-    private static class StatusCountDownLatch extends CountDownLatch {
-        private int status = -1;
-
-        StatusCountDownLatch(int count) {
-            super(count);
-        }
-
-        int getStatus() {
-            return status;
-        }
-
-        void setStatus(int status) {
-            this.status = status;
-        }
-    }    public static class Builder {
+    public static class Builder {
         private final List<Pair<String, String>> params = new ArrayList<>();
         private String url;
 
