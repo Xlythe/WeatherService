@@ -47,35 +47,17 @@ public abstract class LocationBasedService extends GcmTaskService {
 
     private Handler mHandler;
 
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        final String action = intent == null ? null : intent.getAction();
-        if (DEBUG) Log.d(TAG, "onStartCommand() action=" + action);
-        if (ACTION_RUN_MANUALLY.equals(action)) {
-            if (!ensureHandler()) {
-                Log.d(TAG, "Attempted to manually run task, but already running.");
-                return START_NOT_STICKY;
-            }
-
-            mHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    onRunTask(new TaskParams(action));
-                    stopSelf();
-                }
-            });
-            return START_NOT_STICKY;
-        } else {
-            return super.onStartCommand(intent, flags, startId);
-        }
-    }
-
     private synchronized boolean ensureHandler() {
         if (mHandler == null) {
             mHandler = new Handler(sBackgroundThread.getLooper());
             return true;
         }
         return false;
+    }
+
+    protected void post(Runnable runnable) {
+        ensureHandler();
+        mHandler.post(runnable);
     }
 
     @Override

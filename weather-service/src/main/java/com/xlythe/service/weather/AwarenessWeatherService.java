@@ -96,7 +96,7 @@ public class AwarenessWeatherService extends GcmTaskService {
     public int onStartCommand(Intent intent, int flags, int startId) {
         final String action = intent == null ? null : intent.getAction();
         if (DEBUG) Log.d(TAG, "onStartCommand() action=" + action);
-        if (ACTION_RUN_MANUALLY.equals(action)) {
+        if (ACTION_RUN_MANUALLY.equals(action) && isScheduled(this)) {
             new Handler(sBackgroundThread.getLooper()).post(new Runnable() {
                 @Override
                 public void run() {
