@@ -9,6 +9,7 @@ import android.util.Log;
 import com.google.android.gms.gcm.GcmNetworkManager;
 import com.google.android.gms.gcm.PeriodicTask;
 import com.google.android.gms.gcm.Task;
+import com.google.android.gms.gcm.TaskParams;
 
 import org.json.JSONException;
 
@@ -33,13 +34,6 @@ public class OpenWeatherService extends LocationBasedService {
     private static final String PARAM_LNG = "lon";
     private static final String PARAM_API_KEY = "appid";
 
-    public static void setFrequency(Context context, long frequencyInMillis) {
-        getSharedPreferences(context).edit()
-                .putBoolean(BUNDLE_SCHEDULED, true)
-                .putLong(BUNDLE_FREQUENCY, frequencyInMillis)
-                .apply();
-    }
-
     @RequiresPermission(allOf = {
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.ACCESS_COARSE_LOCATION,
@@ -53,7 +47,7 @@ public class OpenWeatherService extends LocationBasedService {
         PeriodicTask task = new PeriodicTask.Builder()
                 .setService(OpenWeatherService.class)
                 .setTag(OpenWeatherService.class.getSimpleName())
-                .setPeriod(getSharedPreferences(context).getLong(BUNDLE_FREQUENCY, FREQUENCY_WEATHER * 1000) / 1000)
+                .setPeriod(getFrequency(context))
                 .setFlex(FLEX)
                 .setRequiredNetwork(Task.NETWORK_STATE_CONNECTED)
                 .setPersisted(true)
@@ -78,6 +72,23 @@ public class OpenWeatherService extends LocationBasedService {
 
     public static String getApiKey(Context context) {
         return getSharedPreferences(context).getString(BUNDLE_API_KEY, null);
+    }
+
+    public static void setFrequency(Context context, long frequencyInMillis) {
+        getSharedPreferences(context).edit()
+                .putBoolean(BUNDLE_SCHEDULED, true)
+                .putLong(BUNDLE_FREQUENCY, frequencyInMillis)
+                .apply();
+    }
+
+    private static long getFrequency(Context context) {
+        return getSharedPreferences(context).getLong(BUNDLE_FREQUENCY, FREQUENCY_WEATHER * 1000) / 1000;
+    }
+
+    private static boolean hasRunRecently(Context context) {
+        Weather weather = new WeatherUnderground();
+        weather.restore(context);
+        return weather.getLastUpdate() > System.currentTimeMillis() - getFrequency(context) + FLEX;
     }
 
     private static SharedPreferences getSharedPreferences(Context context) {
@@ -108,6 +119,16 @@ public class OpenWeatherService extends LocationBasedService {
     @Override
     protected void cancel() {
         cancel(this);
+    }
+
+    @Override
+    public int onRunTask(final TaskParams params) {
+        if (hasRunRecently(this)
+                && !ACTION_RUN_MANUALLY.equals(params.getTag())) {
+            return GcmNetworkManager.RESULT_SUCCESS;
+        }
+
+        return super.onRunTask(params);
     }
 
     @Override

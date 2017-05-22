@@ -40,13 +40,6 @@ public class WeatherUndergroundService extends LocationBasedService {
     private static final String URL_WEATHER = "http://api.wunderground.com/api/%s/geolookup/conditions/q/%s,%s.json"; // apiKey, latitude, longitude
     private static final String URL_ASTRONOMY = "http://api.wunderground.com/api/%s/astronomy/q/%s,%s.json"; // apiKey, latitude, longitude
 
-    public static void setFrequency(Context context, long frequencyInMillis) {
-        getSharedPreferences(context).edit()
-                .putBoolean(BUNDLE_SCHEDULED, true)
-                .putLong(BUNDLE_FREQUENCY, frequencyInMillis)
-                .apply();
-    }
-
     @RequiresPermission(allOf = {
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.ACCESS_COARSE_LOCATION,
@@ -63,7 +56,7 @@ public class WeatherUndergroundService extends LocationBasedService {
         gcmNetworkManager.schedule(new PeriodicTask.Builder()
                 .setService(WeatherUndergroundService.class)
                 .setTag(WeatherUndergroundService.class.getSimpleName() + "_" + TAG_WEATHER)
-                .setPeriod(getSharedPreferences(context).getLong(BUNDLE_FREQUENCY, FREQUENCY_WEATHER * 1000) / 1000)
+                .setPeriod(getFrequency(context))
                 .setFlex(FLEX_WEATHER)
                 .setRequiredNetwork(Task.NETWORK_STATE_CONNECTED)
                 .setPersisted(true)
@@ -102,6 +95,23 @@ public class WeatherUndergroundService extends LocationBasedService {
 
     public static String getApiKey(Context context) {
         return getSharedPreferences(context).getString(BUNDLE_API_KEY, null);
+    }
+
+    public static void setFrequency(Context context, long frequencyInMillis) {
+        getSharedPreferences(context).edit()
+                .putBoolean(BUNDLE_SCHEDULED, true)
+                .putLong(BUNDLE_FREQUENCY, frequencyInMillis)
+                .apply();
+    }
+
+    private static long getFrequency(Context context) {
+        return getSharedPreferences(context).getLong(BUNDLE_FREQUENCY, FREQUENCY_WEATHER * 1000) / 1000;
+    }
+
+    private static boolean hasRunRecently(Context context) {
+        Weather weather = new WeatherUnderground();
+        weather.restore(context);
+        return weather.getLastUpdate() > System.currentTimeMillis() - getFrequency(context) + FLEX_WEATHER;
     }
 
     private static SharedPreferences getSharedPreferences(Context context) {
@@ -149,6 +159,12 @@ public class WeatherUndergroundService extends LocationBasedService {
             Bundle astronomyMetadata = new Bundle();
             astronomyMetadata.putString(BUNDLE_TAG, TAG_ASTRONOMY);
             return super.onRunTask(new TaskParams(params.getTag(), astronomyMetadata));
+        }
+
+        if (TAG_WEATHER.equals(getParams().getString(BUNDLE_TAG))
+                && hasRunRecently(this)
+                && !ACTION_RUN_MANUALLY.equals(params.getTag())) {
+            return GcmNetworkManager.RESULT_SUCCESS;
         }
 
         return super.onRunTask(params);

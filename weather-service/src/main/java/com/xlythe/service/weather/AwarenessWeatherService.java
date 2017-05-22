@@ -22,13 +22,6 @@ public class AwarenessWeatherService extends WeatherService {
     private static final String BUNDLE_SCHEDULE_TIME = "schedule_time";
     private static final String BUNDLE_FREQUENCY = "frequency";
 
-    public static void setFrequency(Context context, long frequencyInMillis) {
-        getSharedPreferences(context).edit()
-                .putBoolean(BUNDLE_SCHEDULED, true)
-                .putLong(BUNDLE_FREQUENCY, frequencyInMillis)
-                .apply();
-    }
-
     @RequiresPermission(allOf = {
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.RECEIVE_BOOT_COMPLETED
@@ -38,7 +31,7 @@ public class AwarenessWeatherService extends WeatherService {
         PeriodicTask task = new PeriodicTask.Builder()
                 .setService(AwarenessWeatherService.class)
                 .setTag(AwarenessWeatherService.class.getSimpleName())
-                .setPeriod(getSharedPreferences(context).getLong(BUNDLE_FREQUENCY, FREQUENCY_WEATHER * 1000) / 1000)
+                .setPeriod(getFrequency(context))
                 .setFlex(FLEX)
                 .setPersisted(true)
                 .setUpdateCurrent(true)
@@ -58,6 +51,23 @@ public class AwarenessWeatherService extends WeatherService {
 
     public static boolean isScheduled(Context context) {
         return getSharedPreferences(context).getBoolean(BUNDLE_SCHEDULED, false);
+    }
+
+    public static void setFrequency(Context context, long frequencyInMillis) {
+        getSharedPreferences(context).edit()
+                .putBoolean(BUNDLE_SCHEDULED, true)
+                .putLong(BUNDLE_FREQUENCY, frequencyInMillis)
+                .apply();
+    }
+
+    private static long getFrequency(Context context) {
+        return getSharedPreferences(context).getLong(BUNDLE_FREQUENCY, FREQUENCY_WEATHER * 1000) / 1000;
+    }
+
+    private static boolean hasRunRecently(Context context) {
+        Weather weather = new AwarenessWeather();
+        weather.restore(context);
+        return weather.getLastUpdate() > System.currentTimeMillis() - getFrequency(context) + FLEX;
     }
 
     private static SharedPreferences getSharedPreferences(Context context) {
@@ -90,6 +100,11 @@ public class AwarenessWeatherService extends WeatherService {
 
     @Override
     public int onRunTask(final TaskParams params) {
+        if (hasRunRecently(this)
+                && !ACTION_RUN_MANUALLY.equals(params.getTag())) {
+            return GcmNetworkManager.RESULT_SUCCESS;
+        }
+
         AwarenessWeather weather = new AwarenessWeather();
         weather.restore(this);
         if (!weather.fetch(this)) {
