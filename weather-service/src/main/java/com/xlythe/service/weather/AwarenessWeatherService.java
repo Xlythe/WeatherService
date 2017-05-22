@@ -34,7 +34,6 @@ public class AwarenessWeatherService extends WeatherService {
             Manifest.permission.RECEIVE_BOOT_COMPLETED
     })
     public static void schedule(Context context) {
-        context = context.getApplicationContext();
         GcmNetworkManager gcmNetworkManager = GcmNetworkManager.getInstance(context);
         PeriodicTask task = new PeriodicTask.Builder()
                 .setService(AwarenessWeatherService.class)
@@ -52,7 +51,6 @@ public class AwarenessWeatherService extends WeatherService {
     }
 
     public static void cancel(Context context) {
-        context = context.getApplicationContext();
         GcmNetworkManager gcmNetworkManager = GcmNetworkManager.getInstance(context);
         gcmNetworkManager.cancelTask(AwarenessWeatherService.class.getSimpleName(), AwarenessWeatherService.class);
         getSharedPreferences(context).edit().putBoolean(BUNDLE_SCHEDULED, false).apply();

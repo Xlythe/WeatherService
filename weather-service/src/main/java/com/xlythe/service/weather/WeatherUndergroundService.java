@@ -91,9 +91,8 @@ public class WeatherUndergroundService extends LocationBasedService {
     }
 
     public static void cancel(Context context) {
-        context = context.getApplicationContext();
         GcmNetworkManager gcmNetworkManager = GcmNetworkManager.getInstance(context);
-        gcmNetworkManager.cancelTask(WeatherUndergroundService.class.getSimpleName(), WeatherUndergroundService.class);
+        gcmNetworkManager.cancelAllTasks(WeatherUndergroundService.class);
         getSharedPreferences(context).edit().putBoolean(BUNDLE_SCHEDULED, false).apply();
     }
 

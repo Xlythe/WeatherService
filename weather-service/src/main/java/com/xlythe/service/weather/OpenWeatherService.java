@@ -67,7 +67,6 @@ public class OpenWeatherService extends LocationBasedService {
     }
 
     public static void cancel(Context context) {
-        context = context.getApplicationContext();
         GcmNetworkManager gcmNetworkManager = GcmNetworkManager.getInstance(context);
         gcmNetworkManager.cancelTask(OpenWeatherService.class.getSimpleName(), OpenWeatherService.class);
         getSharedPreferences(context).edit().putBoolean(BUNDLE_SCHEDULED, false).apply();
