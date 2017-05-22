@@ -159,9 +159,7 @@ public class WeatherUndergroundService extends LocationBasedService {
             Bundle astronomyMetadata = new Bundle();
             astronomyMetadata.putString(BUNDLE_TAG, TAG_ASTRONOMY);
             return super.onRunTask(new TaskParams(params.getTag(), astronomyMetadata));
-        }
-
-        if (TAG_WEATHER.equals(getParams().getString(BUNDLE_TAG))
+        } else if (TAG_WEATHER.equals(params.getExtras().getString(BUNDLE_TAG))
                 && hasRunRecently(this)
                 && !ACTION_RUN_MANUALLY.equals(params.getTag())) {
             return GcmNetworkManager.RESULT_SUCCESS;
