@@ -170,6 +170,7 @@ public class WeatherUndergroundService extends LocationBasedService {
     @Override
     protected void parse(String json) throws JSONException {
         WeatherUnderground weather = new WeatherUnderground();
+        weather.restore(this);
         if (!weather.fetch(this, json)) {
             throw new JSONException("Failed to parse data");
         }

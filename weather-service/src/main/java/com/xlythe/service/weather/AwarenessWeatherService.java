@@ -91,6 +91,7 @@ public class AwarenessWeatherService extends WeatherService {
     @Override
     public int onRunTask(final TaskParams params) {
         AwarenessWeather weather = new AwarenessWeather();
+        weather.restore(this);
         if (!weather.fetch(this)) {
             return GcmNetworkManager.RESULT_RESCHEDULE;
         }

@@ -123,6 +123,7 @@ public class OpenWeatherService extends LocationBasedService {
     @Override
     protected void parse(String json) throws JSONException {
         OpenWeather weather = new OpenWeather();
+        weather.restore(this);
         if (!weather.fetch(this, json)) {
             throw new JSONException("Failed to parse data");
         }
