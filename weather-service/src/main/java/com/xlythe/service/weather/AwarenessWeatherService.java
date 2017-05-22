@@ -38,7 +38,7 @@ public class AwarenessWeatherService extends WeatherService {
         PeriodicTask task = new PeriodicTask.Builder()
                 .setService(AwarenessWeatherService.class)
                 .setTag(AwarenessWeatherService.class.getSimpleName())
-                .setPeriod(getSharedPreferences(context).getLong(BUNDLE_FREQUENCY, FREQUENCY_WEATHER))
+                .setPeriod(getSharedPreferences(context).getLong(BUNDLE_FREQUENCY, FREQUENCY_WEATHER * 1000) / 1000)
                 .setFlex(FLEX)
                 .setPersisted(true)
                 .setUpdateCurrent(true)

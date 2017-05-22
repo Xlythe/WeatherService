@@ -46,6 +46,7 @@ public abstract class WeatherService extends GcmTaskService {
     @Override
     public void onInitializeTasks() {
         if (isScheduled()) {
+            Log.v(TAG, "Rescheduling " + getClass().getSimpleName());
             schedule(getApiKey());
         }
     }

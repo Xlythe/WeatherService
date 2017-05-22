@@ -63,7 +63,7 @@ public class WeatherUndergroundService extends LocationBasedService {
         gcmNetworkManager.schedule(new PeriodicTask.Builder()
                 .setService(WeatherUndergroundService.class)
                 .setTag(WeatherUndergroundService.class.getSimpleName() + "_" + TAG_WEATHER)
-                .setPeriod(getSharedPreferences(context).getLong(BUNDLE_FREQUENCY, FREQUENCY_WEATHER))
+                .setPeriod(getSharedPreferences(context).getLong(BUNDLE_FREQUENCY, FREQUENCY_WEATHER * 1000) / 1000)
                 .setFlex(FLEX_WEATHER)
                 .setRequiredNetwork(Task.NETWORK_STATE_CONNECTED)
                 .setPersisted(true)

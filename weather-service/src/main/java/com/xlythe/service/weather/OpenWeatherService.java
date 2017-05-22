@@ -53,7 +53,7 @@ public class OpenWeatherService extends LocationBasedService {
         PeriodicTask task = new PeriodicTask.Builder()
                 .setService(OpenWeatherService.class)
                 .setTag(OpenWeatherService.class.getSimpleName())
-                .setPeriod(getSharedPreferences(context).getLong(BUNDLE_FREQUENCY, FREQUENCY_WEATHER))
+                .setPeriod(getSharedPreferences(context).getLong(BUNDLE_FREQUENCY, FREQUENCY_WEATHER * 1000) / 1000)
                 .setFlex(FLEX)
                 .setRequiredNetwork(Task.NETWORK_STATE_CONNECTED)
                 .setPersisted(true)
