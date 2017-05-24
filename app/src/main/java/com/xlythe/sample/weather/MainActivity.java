@@ -53,7 +53,9 @@ public class MainActivity extends AppCompatActivity {
         if (!PermissionUtils.hasPermissions(this, REQUIRED_PERMISSIONS)) {
             ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS);
         } else {
-            AwarenessWeatherService.schedule(this);
+            if (!AwarenessWeatherService.isScheduled(this)) {
+                AwarenessWeatherService.schedule(this);
+            }
             invalidate();
         }
     }
