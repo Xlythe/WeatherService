@@ -9,7 +9,9 @@ import android.support.annotation.WorkerThread;
 import android.util.Log;
 
 import com.google.android.gms.awareness.Awareness;
+import com.google.android.gms.awareness.AwarenessStatusCodes;
 import com.google.android.gms.awareness.snapshot.WeatherResult;
+import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 
 import static com.google.android.gms.awareness.state.Weather.CELSIUS;
@@ -19,7 +21,8 @@ import static com.google.android.gms.awareness.state.Weather.CONDITION_SNOWY;
 import static com.google.android.gms.awareness.state.Weather.CONDITION_STORMY;
 
 /**
- * Supports {@link #getCondition()}, {@link #getCelsius()}, and {@link #getFahrenheit()}.
+ * Supports {@link #getCondition()}, {@link #getCelsius()}, {@link #getFahrenheit()},
+ * {@link #getSunrise()}, and {@link #getSunset()}.
  */
 public class AwarenessWeather extends Weather {
     private static final String TAG = AwarenessWeather.class.getSimpleName();
@@ -50,7 +53,11 @@ public class AwarenessWeather extends Weather {
                 .addApi(Awareness.API)
                 .build();
         try {
-            if (!googleApiClient.blockingConnect().isSuccess()) {
+            ConnectionResult result = googleApiClient.blockingConnect();
+            if (!result.isSuccess()) {
+                if (DEBUG) Log.d(TAG, String.format("Failed to connect to GoogleApiClient: [%d]%s",
+                        result.getErrorCode(),
+                        AwarenessStatusCodes.getStatusCodeString(result.getErrorCode())));
                 return false;
             }
 

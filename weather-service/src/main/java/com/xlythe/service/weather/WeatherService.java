@@ -24,7 +24,7 @@ public abstract class WeatherService extends GcmTaskService {
         final String action = intent == null ? null : intent.getAction();
         if (DEBUG) Log.d(TAG, "onStartCommand() action=" + action);
         if (ACTION_RUN_MANUALLY.equals(action)) {
-            new Handler(sBackgroundThread.getLooper()).post(new Runnable() {
+            post(new Runnable() {
                 @Override
                 public void run() {
                     onRunTask(new TaskParams(action));
@@ -35,6 +35,10 @@ public abstract class WeatherService extends GcmTaskService {
         } else {
             return super.onStartCommand(intent, flags, startId);
         }
+    }
+
+    static void post(Runnable runnable) {
+        new Handler(sBackgroundThread.getLooper()).post(runnable);
     }
 
     protected void broadcast(String action) {
