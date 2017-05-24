@@ -8,6 +8,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.WorkerThread;
 
 import java.util.Calendar;
+import java.util.Locale;
 
 public abstract class Weather implements ParcelableUtils.RestorableParcelable {
     static final boolean DEBUG = false;
@@ -84,7 +85,7 @@ public abstract class Weather implements ParcelableUtils.RestorableParcelable {
 
         @Override
         public String toString() {
-            return hour + ":" + minute;
+            return String.format(Locale.US, "%02d:%02d", hour, minute);
         }
 
         @Override
