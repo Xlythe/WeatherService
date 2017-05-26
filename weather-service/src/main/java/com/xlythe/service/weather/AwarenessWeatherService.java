@@ -30,8 +30,17 @@ public class AwarenessWeatherService extends WeatherService {
     private static final String TAG_SUNRISE = TAG + "_SUNRISE";
     private static final String TAG_SUNSET = TAG + "_SUNSET";
 
-    private static final long FIVE_MINUTES = 5 * 60 * 1000;
-    private static final long ONE_HOUR = 12 * FIVE_MINUTES;
+    /**
+     * This is how much flex time we have to get sunrise/sunset. We will be notified some time
+     * within this window. Too short and we won't be notified. Too long and we may be off from the
+     * actual sunrise/sunset time.
+     */
+    private static final long SUNRISE_SUNSET_FLEX = 15 * 60 * 1000; /* 15min */
+
+    /**
+     * This is how soon before today's sunrise/sunset we ask to be notified
+     */
+    private static final long SUNRISE_SUNSET_ADVANCE = 12 * 60 * 60 * 1000; /* 12hr */
 
     public static final String ACTION_DATA_CHANGED = "com.xlythe.service.weather.AWARENESS_DATA_CHANGED";
     private static final String ACTION_SUNRISE = "com.xlythe.service.weather.AWARENESS_SUNRISE";
@@ -264,8 +273,8 @@ public class AwarenessWeatherService extends WeatherService {
         return Awareness.FenceApi.updateFences(googleApiClient, new FenceUpdateRequest.Builder()
                 .addFence(
                         TAG_SUNRISE,
-                        TimeFence.aroundTimeInstant(TimeFence.TIME_INSTANT_SUNRISE, -ONE_HOUR, -ONE_HOUR + FIVE_MINUTES),
-                        getPendingIntent(context, getIntent(context, ACTION_SUNRISE).putExtra(BUNDLE_TIME_OFFSET, ONE_HOUR)))
+                        TimeFence.aroundTimeInstant(TimeFence.TIME_INSTANT_SUNRISE, -SUNRISE_SUNSET_ADVANCE, -SUNRISE_SUNSET_ADVANCE + SUNRISE_SUNSET_FLEX),
+                        getPendingIntent(context, getIntent(context, ACTION_SUNRISE).putExtra(BUNDLE_TIME_OFFSET, SUNRISE_SUNSET_ADVANCE)))
                 .build()).await().isSuccess();
     }
 
@@ -279,8 +288,8 @@ public class AwarenessWeatherService extends WeatherService {
         return Awareness.FenceApi.updateFences(googleApiClient, new FenceUpdateRequest.Builder()
                 .addFence(
                         TAG_SUNSET,
-                        TimeFence.aroundTimeInstant(TimeFence.TIME_INSTANT_SUNSET, -ONE_HOUR, -ONE_HOUR + FIVE_MINUTES),
-                getPendingIntent(context, getIntent(context, ACTION_SUNSET).putExtra(BUNDLE_TIME_OFFSET, ONE_HOUR)))
+                        TimeFence.aroundTimeInstant(TimeFence.TIME_INSTANT_SUNSET, -SUNRISE_SUNSET_ADVANCE, -SUNRISE_SUNSET_ADVANCE + SUNRISE_SUNSET_FLEX),
+                getPendingIntent(context, getIntent(context, ACTION_SUNSET).putExtra(BUNDLE_TIME_OFFSET, SUNRISE_SUNSET_ADVANCE)))
                 .build()).await().isSuccess();
     }
 
