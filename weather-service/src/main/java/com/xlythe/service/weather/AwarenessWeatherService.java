@@ -150,6 +150,8 @@ public class AwarenessWeatherService extends WeatherService {
                 weather.save(this);
 
                 if (DEBUG) Log.d(TAG, "Sunrise set to " + weather.getSunrise());
+
+                broadcast(ACTION_DATA_CHANGED);
             } else {
                 if (DEBUG) Log.d(TAG, "Sunrise state set to " + toString(fenceState.getCurrentState()));
             }
@@ -174,6 +176,8 @@ public class AwarenessWeatherService extends WeatherService {
                 weather.save(this);
 
                 if (DEBUG) Log.d(TAG, "Sunset set to " + weather.getSunset());
+
+                broadcast(ACTION_DATA_CHANGED);
             } else {
                 if (DEBUG) Log.d(TAG, "Sunset state set to " + toString(fenceState.getCurrentState()));
             }
