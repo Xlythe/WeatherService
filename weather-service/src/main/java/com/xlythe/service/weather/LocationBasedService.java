@@ -3,14 +3,17 @@ package com.xlythe.service.weather;
 import android.Manifest;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Looper;
+import android.support.annotation.Nullable;
 import android.util.Log;
 import android.util.Pair;
 
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.gcm.GcmNetworkManager;
 import com.google.android.gms.gcm.TaskParams;
-import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 
 import org.json.JSONException;
@@ -40,43 +43,29 @@ public abstract class LocationBasedService extends WeatherService {
     @Override
     public int onRunTask(final TaskParams params) {
         if (DEBUG) Log.d(TAG, "Building GoogleApiClient");
-        GoogleApiClient googleApiClient = new GoogleApiClient.Builder(getApplicationContext())
-                .addApi(LocationServices.API)
-                .build();
+        final Location location = getLocation();
+        if (location == null) {
+            if (DEBUG) Log.d(TAG, "No location found");
+            return GcmNetworkManager.RESULT_RESCHEDULE;
+        }
+
         try {
-            if (!googleApiClient.blockingConnect().isSuccess()) {
-                return GcmNetworkManager.RESULT_RESCHEDULE;
-            }
+            mParams = params.getExtras();
 
-            if (DEBUG) Log.d(TAG, "Connected to LocationServices API");
-            final Location location = getLocation(googleApiClient);
-            if (location == null) {
-                if (DEBUG) Log.d(TAG, "No location found");
-                return GcmNetworkManager.RESULT_RESCHEDULE;
-            }
+            if (DEBUG) Log.d(TAG, "Creating url");
+            String requestUrl = createUrl(location);
+            if (DEBUG) Log.d(TAG, requestUrl);
 
-            try {
-                mParams = params.getExtras();
+            if (DEBUG) Log.d(TAG, "Fetching url");
+            String input = fetch(requestUrl);
+            if (DEBUG) Log.d(TAG, input);
 
-                if (DEBUG) Log.d(TAG, "Creating url");
-                String requestUrl = createUrl(location);
-                if (DEBUG) Log.d(TAG, requestUrl);
-
-                if (DEBUG) Log.d(TAG, "Fetching url");
-                String input = fetch(requestUrl);
-                if (DEBUG) Log.d(TAG, input);
-
-                parse(input);
-            } catch (IOException e) {
-                if (DEBUG) Log.e(TAG, "IO Exception", e);
-                return GcmNetworkManager.RESULT_RESCHEDULE;
-            } catch (JSONException e) {
-                if (DEBUG) Log.e(TAG, "JSON Exception", e);
-            }
-        } finally {
-            if (googleApiClient.isConnected()) {
-                googleApiClient.disconnect();
-            }
+            parse(input);
+        } catch (IOException e) {
+            if (DEBUG) Log.e(TAG, "IO Exception", e);
+            return GcmNetworkManager.RESULT_RESCHEDULE;
+        } catch (JSONException e) {
+            if (DEBUG) Log.e(TAG, "JSON Exception", e);
         }
 
         return GcmNetworkManager.RESULT_SUCCESS;
@@ -86,42 +75,42 @@ public abstract class LocationBasedService extends WeatherService {
         return mParams;
     }
 
+    @Nullable
     @SuppressWarnings({"MissingPermission"})
-    private Location getLocation(GoogleApiClient googleApiClient) {
+    private Location getLocation() {
         if (!PermissionUtils.hasPermissions(this, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)) {
             return null;
         }
 
-        Location location = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
+        FusedLocationProviderClient client = LocationServices.getFusedLocationProviderClient(this);
+
+        Location location = client
+                .getLastLocation()
+                .getResult();
         if (location != null) {
             if (DEBUG) Log.d(TAG, "Found cached location");
             return location;
         }
 
+        if (DEBUG) Log.d(TAG, "Querying for a new location");
+        CountDownLatch latch = new CountDownLatch(1);
+        LastKnownLocationCallback callback = new LastKnownLocationCallback(latch);
+        client.requestLocationUpdates(
+                LocationRequest
+                        .create()
+                        .setNumUpdates(1)
+                        .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY),
+                callback,
+                Looper.getMainLooper()
+        );
         try {
-            if (DEBUG) Log.d(TAG, "Querying for a new location");
-            CountDownLatch latch = new CountDownLatch(1);
-            LastKnownLocationCallback callback = new LastKnownLocationCallback(latch);
-            LocationServices.FusedLocationApi.requestLocationUpdates(
-                    googleApiClient,
-                    LocationRequest
-                            .create()
-                            .setNumUpdates(1)
-                            .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY),
-                    callback);
-            try {
-                latch.await(LOCATION_TIMEOUT_IN_SECONDS, TimeUnit.SECONDS);
-            } catch (InterruptedException e) {
-                Log.e(TAG, "Interrupted while waiting for location.", e);
-            }
-            LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient, callback);
-            return callback.location;
-        } catch (IllegalStateException e) {
-            // We were disconnected while we were attempting to use the API.
-            Log.e(TAG, "Requesting location updates failed. GoogleApiClient was disconnected.", e);
+            latch.await(LOCATION_TIMEOUT_IN_SECONDS, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            Log.e(TAG, "Interrupted while waiting for location.", e);
         }
-
-        return null;
+        client.removeLocationUpdates(callback);
+        return callback.location;
     }
 
     protected String createUrl(Location location) {
@@ -171,7 +160,7 @@ public abstract class LocationBasedService extends WeatherService {
         }
     }
 
-    private static class LastKnownLocationCallback implements LocationListener {
+    private static class LastKnownLocationCallback extends LocationCallback {
         private final CountDownLatch latch;
         private Location location;
 
@@ -179,10 +168,19 @@ public abstract class LocationBasedService extends WeatherService {
             this.latch = latch;
         }
 
-        @Override
-        public void onLocationChanged(Location location) {
-            this.location = location;
-            latch.countDown();
+        public void onLocationResult(LocationResult result) {
+            location = getLocation(result.getLocations());
+            if (location != null) {
+                latch.countDown();
+            }
+        }
+
+        @Nullable
+        private static Location getLocation(@Nullable List<Location> locations) {
+            if (locations == null || locations.isEmpty()) {
+                return null;
+            }
+            return locations.get(0);
         }
     }
 
