@@ -293,7 +293,7 @@ public class AwarenessWeatherService extends WeatherService {
                 .build()).await().isSuccess();
     }
 
-    private static String toString(@FenceState.State int fenceState) {
+    private static String toString(int fenceState) {
         switch (fenceState) {
             case FenceState.TRUE:
                 return "TRUE";
