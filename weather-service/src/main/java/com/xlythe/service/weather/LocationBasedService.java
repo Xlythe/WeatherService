@@ -84,12 +84,16 @@ public abstract class LocationBasedService extends WeatherService {
 
         FusedLocationProviderClient client = LocationServices.getFusedLocationProviderClient(this);
 
-        Location location = client
-                .getLastLocation()
-                .getResult();
-        if (location != null) {
-            if (DEBUG) Log.d(TAG, "Found cached location");
-            return location;
+        try {
+            Location location = client
+                    .getLastLocation()
+                    .getResult();
+            if (location != null) {
+                if (DEBUG) Log.d(TAG, "Found cached location");
+                return location;
+            }
+        } catch (IllegalStateException e) {
+            Log.e(TAG, "Failed to query last known location", e);
         }
 
         if (DEBUG) Log.d(TAG, "Querying for a new location");
@@ -104,7 +108,9 @@ public abstract class LocationBasedService extends WeatherService {
                 Looper.getMainLooper()
         );
         try {
-            latch.await(LOCATION_TIMEOUT_IN_SECONDS, TimeUnit.SECONDS);
+            if (!latch.await(LOCATION_TIMEOUT_IN_SECONDS, TimeUnit.SECONDS)) {
+                Log.w(TAG, "Timed out waiting for a location after " + LOCATION_TIMEOUT_IN_SECONDS + " seconds");
+            }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             Log.e(TAG, "Interrupted while waiting for location.", e);
