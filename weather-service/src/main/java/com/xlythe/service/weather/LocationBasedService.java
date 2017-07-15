@@ -4,6 +4,7 @@ import android.Manifest;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Looper;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.util.Pair;
@@ -15,6 +16,8 @@ import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 
 import org.json.JSONException;
 
@@ -84,21 +87,26 @@ public abstract class LocationBasedService extends WeatherService {
 
         FusedLocationProviderClient client = LocationServices.getFusedLocationProviderClient(this);
 
+        CountDownLatch latch = new CountDownLatch(1);
+        LastKnownLocationCallback callback = new LastKnownLocationCallback(latch);
+        client.getLastLocation().addOnCompleteListener(callback);
         try {
-            Location location = client
-                    .getLastLocation()
-                    .getResult();
-            if (location != null) {
-                if (DEBUG) Log.d(TAG, "Found cached location");
-                return location;
+            if (!latch.await(LOCATION_TIMEOUT_IN_SECONDS, TimeUnit.SECONDS)) {
+                Log.w(TAG, "Timed out waiting for a cached location after " + LOCATION_TIMEOUT_IN_SECONDS + " seconds");
             }
-        } catch (IllegalStateException e) {
-            Log.e(TAG, "Failed to query last known location", e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            Log.e(TAG, "Interrupted while waiting for location.", e);
+        }
+
+        if (callback.location != null) {
+            if (DEBUG) Log.d(TAG, "Found cached location");
+            return callback.location;
         }
 
         if (DEBUG) Log.d(TAG, "Querying for a new location");
-        CountDownLatch latch = new CountDownLatch(1);
-        LastKnownLocationCallback callback = new LastKnownLocationCallback(latch);
+        latch = new CountDownLatch(1);
+        callback = new LastKnownLocationCallback(latch);
         client.requestLocationUpdates(
                 LocationRequest
                         .create()
@@ -166,7 +174,7 @@ public abstract class LocationBasedService extends WeatherService {
         }
     }
 
-    private static class LastKnownLocationCallback extends LocationCallback {
+    private static class LastKnownLocationCallback extends LocationCallback implements OnCompleteListener<Location> {
         private final CountDownLatch latch;
         private Location location;
 
@@ -187,6 +195,14 @@ public abstract class LocationBasedService extends WeatherService {
                 return null;
             }
             return locations.get(0);
+        }
+
+        @Override
+        public void onComplete(@NonNull Task<Location> task) {
+            if (task.isSuccessful()) {
+                location = task.getResult();
+            }
+            latch.countDown();
         }
     }
 
