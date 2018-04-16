@@ -9,10 +9,10 @@ import android.support.annotation.WorkerThread;
 import android.util.Log;
 
 import com.google.android.gms.awareness.Awareness;
-import com.google.android.gms.awareness.AwarenessStatusCodes;
-import com.google.android.gms.awareness.snapshot.WeatherResult;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.awareness.snapshot.WeatherResponse;
+import com.google.android.gms.tasks.Tasks;
+
+import java.util.concurrent.ExecutionException;
 
 import static com.google.android.gms.awareness.state.Weather.CELSIUS;
 import static com.google.android.gms.awareness.state.Weather.CONDITION_CLOUDY;
@@ -48,50 +48,31 @@ public class AwarenessWeather extends Weather {
     @WorkerThread
     @Override
     public boolean fetch(Context context, Object... args) {
-        if (DEBUG) Log.d(TAG, "Building GoogleApiClient");
-        GoogleApiClient googleApiClient = new GoogleApiClient.Builder(context.getApplicationContext())
-                .addApi(Awareness.API)
-                .build();
-        try {
-            ConnectionResult result = googleApiClient.blockingConnect();
-            if (!result.isSuccess()) {
-                if (DEBUG) Log.d(TAG, String.format("Failed to connect to GoogleApiClient: [%d]%s",
-                        result.getErrorCode(),
-                        AwarenessStatusCodes.getStatusCodeString(result.getErrorCode())));
-                return false;
-            }
+        com.google.android.gms.awareness.state.Weather weather = getWeather(context);
+        if (weather == null) {
+            if (DEBUG) Log.d(TAG, "No weather found");
+            return false;
+        }
 
-            if (DEBUG) Log.d(TAG, "Connected to Awareness API");
-            com.google.android.gms.awareness.state.Weather weather = getWeather(context, googleApiClient);
-            if (weather == null) {
-                if (DEBUG) Log.d(TAG, "No weather found");
-                return false;
-            }
-
-            setCelsius(weather.getTemperature(CELSIUS));
-            setCondition(Condition.SUNNY);
-            for (int condition : weather.getConditions()) {
-                switch (condition) {
-                    case CONDITION_RAINY:
-                    case CONDITION_STORMY:
-                        setCondition(Condition.RAIN);
-                        break;
-                    case CONDITION_SNOWY:
-                        setCondition(Condition.SNOW);
-                        break;
-                    case CONDITION_CLOUDY:
-                        setCondition(Condition.CLOUDY);
-                        break;
-                }
-            }
-
-            if (DEBUG)
-                Log.d(TAG, "Weather set to " + getCondition() + ", " + getFahrenheit() + "F");
-        } finally {
-            if (googleApiClient.isConnected()) {
-                googleApiClient.disconnect();
+        setCelsius(weather.getTemperature(CELSIUS));
+        setCondition(Condition.SUNNY);
+        for (int condition : weather.getConditions()) {
+            switch (condition) {
+                case CONDITION_RAINY:
+                case CONDITION_STORMY:
+                    setCondition(Condition.RAIN);
+                    break;
+                case CONDITION_SNOWY:
+                    setCondition(Condition.SNOW);
+                    break;
+                case CONDITION_CLOUDY:
+                    setCondition(Condition.CLOUDY);
+                    break;
             }
         }
+
+        if (DEBUG)
+            Log.d(TAG, "Weather set to " + getCondition() + ", " + getFahrenheit() + "F");
 
         return true;
     }
@@ -99,15 +80,19 @@ public class AwarenessWeather extends Weather {
     @WorkerThread
     @Nullable
     @SuppressWarnings({"MissingPermission"})
-    private com.google.android.gms.awareness.state.Weather getWeather(Context context, GoogleApiClient googleApiClient) {
+    private com.google.android.gms.awareness.state.Weather getWeather(Context context) {
         if (!PermissionUtils.hasPermissions(context, Manifest.permission.ACCESS_FINE_LOCATION)) {
             return null;
         }
 
-        WeatherResult weatherResult = Awareness.SnapshotApi.getWeather(googleApiClient).await();
-        if (weatherResult.getStatus().isSuccess()) {
-            return weatherResult.getWeather();
+        try {
+            WeatherResponse weatherResponse = Tasks.await(Awareness.getSnapshotClient(context).getWeather());
+            return weatherResponse.getWeather();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return null;
+        } catch (ExecutionException e) {
+            return null;
         }
-        return null;
     }
 }

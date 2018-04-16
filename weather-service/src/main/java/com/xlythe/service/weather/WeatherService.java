@@ -1,59 +1,82 @@
 package com.xlythe.service.weather;
 
+import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.util.Log;
+import android.support.annotation.Nullable;
+import android.support.annotation.UiThread;
+import android.support.annotation.WorkerThread;
 
-import com.google.android.gms.gcm.GcmTaskService;
-import com.google.android.gms.gcm.TaskParams;
+import com.firebase.jobdispatcher.JobParameters;
+import com.firebase.jobdispatcher.JobService;
 
-public abstract class WeatherService extends GcmTaskService {
-    private static final String TAG = WeatherService.class.getSimpleName();
-    static final boolean DEBUG = false;
+public abstract class WeatherService extends JobService {
+    static final boolean DEBUG = true;
 
-    public static final String ACTION_RUN_MANUALLY = "com.xlythe.service.ACTION_RUN_MANUALLY";
     private static final HandlerThread sBackgroundThread = new HandlerThread("ServiceBackgroundThread");
+
+    protected enum Result {
+        SUCCESS, RESCHEDULE, FAILURE;
+    }
 
     static {
         sBackgroundThread.start();
     }
 
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        final String action = intent == null ? null : intent.getAction();
-        if (DEBUG) Log.d(TAG, "onStartCommand() action=" + action);
-        if (ACTION_RUN_MANUALLY.equals(action)) {
-            post(new Runnable() {
-                @Override
-                public void run() {
-                    onRunTask(new TaskParams(action));
-                    stopSelf();
-                }
-            });
-            return START_NOT_STICKY;
-        } else {
-            return super.onStartCommand(intent, flags, startId);
+    protected static void runImmediately(Context context, Class<? extends WeatherService> clazz, @Nullable Bundle extras) {
+        try {
+            WeatherService service = clazz.newInstance();
+            service.attachBaseContext(context);
+            service.onRunTask(extras);
+        } catch (Exception e) {
+            if (DEBUG) e.printStackTrace();
         }
     }
 
-    static void post(Runnable runnable) {
+    protected static void post(Runnable runnable) {
         new Handler(sBackgroundThread.getLooper()).post(runnable);
     }
 
-    protected void broadcast(String action) {
+    protected static void broadcast(Context context, String action) {
         Intent intent = new Intent(action);
-        intent.setPackage(getPackageName());
-        sendBroadcast(intent);
+        intent.setPackage(context.getPackageName());
+        context.sendBroadcast(intent);
     }
 
-    @Override
-    public void onInitializeTasks() {
-        if (isScheduled()) {
-            Log.v(TAG, "Rescheduling " + getClass().getSimpleName());
-            schedule(getApiKey());
-        }
+    protected void broadcast(String action) {
+        broadcast(this, action);
     }
+
+    @UiThread
+    @Override
+    public boolean onStartJob(final JobParameters job) {
+        post(() -> {
+                switch (onRunTask(job.getExtras())) {
+                    case SUCCESS:
+                    case FAILURE:
+                        jobFinished(job, false);
+                        break;
+                    case RESCHEDULE:
+                        jobFinished(job, true);
+                        break;
+                }
+            });
+
+        // Returning true signals that there is ongoing work.
+        return true;
+    }
+
+    @UiThread
+    @Override
+    public boolean onStopJob(JobParameters job) {
+        // Returning true signals that the job should be retried as soon as possible.
+        return true;
+    }
+
+    @WorkerThread
+    protected abstract Result onRunTask(@Nullable Bundle extras);
 
     protected abstract boolean isScheduled();
 

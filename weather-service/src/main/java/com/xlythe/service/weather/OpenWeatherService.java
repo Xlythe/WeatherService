@@ -3,13 +3,16 @@ package com.xlythe.service.weather;
 import android.Manifest;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.annotation.RequiresPermission;
 import android.util.Log;
 
-import com.google.android.gms.gcm.GcmNetworkManager;
-import com.google.android.gms.gcm.PeriodicTask;
-import com.google.android.gms.gcm.Task;
-import com.google.android.gms.gcm.TaskParams;
+import com.firebase.jobdispatcher.Constraint;
+import com.firebase.jobdispatcher.FirebaseJobDispatcher;
+import com.firebase.jobdispatcher.GooglePlayDriver;
+import com.firebase.jobdispatcher.Lifetime;
+import com.firebase.jobdispatcher.Trigger;
 
 import org.json.JSONException;
 
@@ -21,8 +24,8 @@ public class OpenWeatherService extends LocationBasedService {
 
     public static final String ACTION_DATA_CHANGED = "com.xlythe.service.weather.OPEN_WEATHER_DATA_CHANGED";
 
-    private static final long FREQUENCY_WEATHER = 2 * 60 * 60; // 2hrs in seconds
-    private static final long FLEX = 30 * 60; // 30min in seconds
+    private static final int FREQUENCY_WEATHER = 2 * 60 * 60; // 2hrs in seconds
+    private static final int FLEX = 30 * 60; // 30min in seconds
 
     private static final String BUNDLE_SCHEDULED = "scheduled";
     private static final String BUNDLE_SCHEDULE_TIME = "schedule_time";
@@ -37,23 +40,31 @@ public class OpenWeatherService extends LocationBasedService {
     @RequiresPermission(allOf = {
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.INTERNET
+    })
+    public static void runImmediately(Context context) {
+        runImmediately(context, OpenWeatherService.class, null);
+    }
+
+    @RequiresPermission(allOf = {
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
             Manifest.permission.INTERNET,
             Manifest.permission.RECEIVE_BOOT_COMPLETED
     })
     public static void schedule(Context context, String apiKey) {
         if (DEBUG) Log.d(TAG, "Scheduling weather api");
         getSharedPreferences(context).edit().putString(BUNDLE_API_KEY, apiKey).apply();
-        GcmNetworkManager gcmNetworkManager = GcmNetworkManager.getInstance(context);
-        PeriodicTask task = new PeriodicTask.Builder()
-                .setService(OpenWeatherService.class)
-                .setTag(OpenWeatherService.class.getSimpleName())
-                .setPeriod(getFrequency(context))
-                .setFlex(FLEX)
-                .setRequiredNetwork(Task.NETWORK_STATE_CONNECTED)
-                .setPersisted(true)
-                .setUpdateCurrent(true)
-                .build();
-        gcmNetworkManager.schedule(task);
+        FirebaseJobDispatcher dispatcher = new FirebaseJobDispatcher(new GooglePlayDriver(context));
+        dispatcher.mustSchedule(dispatcher.newJobBuilder()
+                .setService(WeatherUndergroundService.class)
+                .setTag(TAG)
+                .setRecurring(true)
+                .setTrigger(Trigger.executionWindow(getFrequency(context), getFrequency(context) + FLEX))
+                .setConstraints(Constraint.ON_ANY_NETWORK)
+                .setLifetime(Lifetime.FOREVER)
+                .setReplaceCurrent(true)
+                .build());
         getSharedPreferences(context).edit()
                 .putBoolean(BUNDLE_SCHEDULED, true)
                 .putLong(BUNDLE_SCHEDULE_TIME, System.currentTimeMillis())
@@ -61,8 +72,8 @@ public class OpenWeatherService extends LocationBasedService {
     }
 
     public static void cancel(Context context) {
-        GcmNetworkManager gcmNetworkManager = GcmNetworkManager.getInstance(context);
-        gcmNetworkManager.cancelTask(OpenWeatherService.class.getSimpleName(), OpenWeatherService.class);
+        FirebaseJobDispatcher dispatcher = new FirebaseJobDispatcher(new GooglePlayDriver(context));
+        dispatcher.cancel(TAG);
         getSharedPreferences(context).edit().putBoolean(BUNDLE_SCHEDULED, false).apply();
     }
 
@@ -81,8 +92,8 @@ public class OpenWeatherService extends LocationBasedService {
                 .apply();
     }
 
-    private static long getFrequency(Context context) {
-        return getSharedPreferences(context).getLong(BUNDLE_FREQUENCY, FREQUENCY_WEATHER * 1000) / 1000;
+    private static int getFrequency(Context context) {
+        return (int) (getSharedPreferences(context).getLong(BUNDLE_FREQUENCY, FREQUENCY_WEATHER * 1000) / 1000);
     }
 
     private static boolean hasRunRecently(Context context) {
@@ -122,13 +133,13 @@ public class OpenWeatherService extends LocationBasedService {
     }
 
     @Override
-    public int onRunTask(final TaskParams params) {
-        if (hasRunRecently(this)
-                && !ACTION_RUN_MANUALLY.equals(params.getTag())) {
-            return GcmNetworkManager.RESULT_SUCCESS;
+    public Result onRunTask(@Nullable Bundle extras) {
+        // Extras are null when run manually.
+        if (extras != null && hasRunRecently(this)) {
+            return Result.SUCCESS;
         }
 
-        return super.onRunTask(params);
+        return super.onRunTask(extras);
     }
 
     @Override

@@ -4,13 +4,15 @@ import android.Manifest;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.annotation.RequiresPermission;
 import android.util.Log;
 
-import com.google.android.gms.gcm.GcmNetworkManager;
-import com.google.android.gms.gcm.PeriodicTask;
-import com.google.android.gms.gcm.Task;
-import com.google.android.gms.gcm.TaskParams;
+import com.firebase.jobdispatcher.Constraint;
+import com.firebase.jobdispatcher.FirebaseJobDispatcher;
+import com.firebase.jobdispatcher.GooglePlayDriver;
+import com.firebase.jobdispatcher.Lifetime;
+import com.firebase.jobdispatcher.Trigger;
 
 import org.json.JSONException;
 
@@ -23,13 +25,13 @@ public class WeatherUndergroundService extends LocationBasedService {
 
     public static final String ACTION_DATA_CHANGED = "com.xlythe.service.weather.WUNDERGROUND_WEATHER_DATA_CHANGED";
 
-    private static final String TAG_WEATHER = "weather";
-    private static final long FREQUENCY_WEATHER = 2 * 60 * 60; // 2hrs in seconds
-    private static final long FLEX_WEATHER = 30 * 60; // 30min in seconds
+    private static final String TAG_WEATHER = WeatherUndergroundService.class.getSimpleName() + "_weather";
+    private static final int FREQUENCY_WEATHER = 2 * 60 * 60; // 2hrs in seconds
+    private static final int FLEX_WEATHER = 30 * 60; // 30min in seconds
 
-    private static final String TAG_ASTRONOMY = "astronomy";
-    private static final long FREQUENCY_ASTRONOMY = 23 * 60 * 60; // 23hrs in seconds
-    private static final long FLEX_ASTRONOMY = 60 * 60; // 1hr in seconds
+    private static final String TAG_ASTRONOMY = WeatherUndergroundService.class.getSimpleName() + "_astronomy";
+    private static final int FREQUENCY_ASTRONOMY = 23 * 60 * 60; // 23hrs in seconds
+    private static final int FLEX_ASTRONOMY = 60 * 60; // 1hr in seconds
 
     private static final String BUNDLE_SCHEDULED = "scheduled";
     private static final String BUNDLE_SCHEDULE_TIME = "schedule_time";
@@ -43,37 +45,46 @@ public class WeatherUndergroundService extends LocationBasedService {
     @RequiresPermission(allOf = {
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.INTERNET
+    })
+    public static void runImmediately(Context context) {
+        runImmediately(context, WeatherUndergroundService.class, null);
+    }
+
+    @RequiresPermission(allOf = {
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
             Manifest.permission.INTERNET,
             Manifest.permission.RECEIVE_BOOT_COMPLETED
     })
     public static void schedule(Context context, String apiKey) {
         if (DEBUG) Log.d(TAG, "Scheduling weather api");
         getSharedPreferences(context).edit().putString(BUNDLE_API_KEY, apiKey).apply();
-        GcmNetworkManager gcmNetworkManager = GcmNetworkManager.getInstance(context);
+        FirebaseJobDispatcher dispatcher = new FirebaseJobDispatcher(new GooglePlayDriver(context));
 
         Bundle weatherMetadata = new Bundle();
         weatherMetadata.putString(BUNDLE_TAG, TAG_WEATHER);
-        gcmNetworkManager.schedule(new PeriodicTask.Builder()
+        dispatcher.mustSchedule(dispatcher.newJobBuilder()
                 .setService(WeatherUndergroundService.class)
-                .setTag(WeatherUndergroundService.class.getSimpleName() + "_" + TAG_WEATHER)
-                .setPeriod(getFrequency(context))
-                .setFlex(FLEX_WEATHER)
-                .setRequiredNetwork(Task.NETWORK_STATE_CONNECTED)
-                .setPersisted(true)
-                .setUpdateCurrent(true)
+                .setTag(TAG_WEATHER)
+                .setRecurring(true)
+                .setTrigger(Trigger.executionWindow(getFrequency(context), getFrequency(context) + FLEX_WEATHER))
+                .setConstraints(Constraint.ON_ANY_NETWORK)
+                .setLifetime(Lifetime.FOREVER)
+                .setReplaceCurrent(true)
                 .setExtras(weatherMetadata)
                 .build());
 
         Bundle astronomyMetadata = new Bundle();
         astronomyMetadata.putString(BUNDLE_TAG, TAG_ASTRONOMY);
-        gcmNetworkManager.schedule(new PeriodicTask.Builder()
+        dispatcher.mustSchedule(dispatcher.newJobBuilder()
                 .setService(WeatherUndergroundService.class)
-                .setTag(WeatherUndergroundService.class.getSimpleName() + "_" + TAG_ASTRONOMY)
-                .setPeriod(FREQUENCY_ASTRONOMY)
-                .setFlex(FLEX_ASTRONOMY)
-                .setRequiredNetwork(Task.NETWORK_STATE_CONNECTED)
-                .setPersisted(true)
-                .setUpdateCurrent(true)
+                .setTag(TAG_ASTRONOMY)
+                .setRecurring(true)
+                .setTrigger(Trigger.executionWindow(FREQUENCY_ASTRONOMY, FREQUENCY_ASTRONOMY + FLEX_ASTRONOMY))
+                .setConstraints(Constraint.ON_ANY_NETWORK)
+                .setLifetime(Lifetime.FOREVER)
+                .setReplaceCurrent(true)
                 .setExtras(astronomyMetadata)
                 .build());
 
@@ -84,8 +95,8 @@ public class WeatherUndergroundService extends LocationBasedService {
     }
 
     public static void cancel(Context context) {
-        GcmNetworkManager gcmNetworkManager = GcmNetworkManager.getInstance(context);
-        gcmNetworkManager.cancelAllTasks(WeatherUndergroundService.class);
+        FirebaseJobDispatcher dispatcher = new FirebaseJobDispatcher(new GooglePlayDriver(context));
+        dispatcher.cancel(TAG);
         getSharedPreferences(context).edit().putBoolean(BUNDLE_SCHEDULED, false).apply();
     }
 
@@ -104,8 +115,8 @@ public class WeatherUndergroundService extends LocationBasedService {
                 .apply();
     }
 
-    private static long getFrequency(Context context) {
-        return getSharedPreferences(context).getLong(BUNDLE_FREQUENCY, FREQUENCY_WEATHER * 1000) / 1000;
+    private static int getFrequency(Context context) {
+        return (int) (getSharedPreferences(context).getLong(BUNDLE_FREQUENCY, FREQUENCY_WEATHER * 1000) / 1000);
     }
 
     private static boolean hasRunRecently(Context context) {
@@ -145,27 +156,26 @@ public class WeatherUndergroundService extends LocationBasedService {
     }
 
     @Override
-    public int onRunTask(final TaskParams params) {
+    public Result onRunTask(@Nullable Bundle extras) {
         // Extras are null when running manually. In this special case, we'd like to run both
         // weather and astronomy queries.
-        if (params.getExtras() == null) {
+        if (extras == null) {
             Bundle weatherMetadata = new Bundle();
             weatherMetadata.putString(BUNDLE_TAG, TAG_WEATHER);
-            int status = super.onRunTask(new TaskParams(params.getTag(), weatherMetadata));
-            if (status != GcmNetworkManager.RESULT_SUCCESS) {
-                return status;
+            Result result = super.onRunTask(weatherMetadata);
+            if (result != Result.SUCCESS) {
+                return result;
             }
 
             Bundle astronomyMetadata = new Bundle();
             astronomyMetadata.putString(BUNDLE_TAG, TAG_ASTRONOMY);
-            return super.onRunTask(new TaskParams(params.getTag(), astronomyMetadata));
-        } else if (TAG_WEATHER.equals(params.getExtras().getString(BUNDLE_TAG))
-                && hasRunRecently(this)
-                && !ACTION_RUN_MANUALLY.equals(params.getTag())) {
-            return GcmNetworkManager.RESULT_SUCCESS;
+            return super.onRunTask(astronomyMetadata);
+        } else if (TAG_WEATHER.equals(extras.getString(BUNDLE_TAG))
+                && hasRunRecently(this)) {
+            return Result.SUCCESS;
         }
 
-        return super.onRunTask(params);
+        return super.onRunTask(extras);
     }
 
     @Override

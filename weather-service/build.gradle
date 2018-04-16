@@ -13,11 +13,15 @@ android {
     lintOptions {
         abortOnError false
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 dependencies {
-    api fileTree(dir: 'libs', include: ['*.jar'])
-    api 'com.google.android.gms:play-services-gcm:+'
+    api fileTree(include: ['*.jar'], dir: 'libs')
+    api 'com.firebase:firebase-jobdispatcher:+'
     api 'com.google.android.gms:play-services-location:+'
     api 'com.google.android.gms:play-services-awareness:+'
 }

@@ -3,33 +3,28 @@
     package="com.xlythe.service.weather">
     <application>
         <service
-            android:name=".AwarenessWeatherService"
-            android:exported="true"
-            android:permission="com.google.android.gms.permission.BIND_NETWORK_TASK_SERVICE">
+            android:name=".AwarenessWeatherService">
             <intent-filter>
-                <action android:name="com.google.android.gms.gcm.ACTION_TASK_READY" />
+                <action android:name="com.firebase.jobdispatcher.ACTION_EXECUTE" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.xlythe.service.ACTION_RUN_MANUALLY" />
+            </intent-filter>
+        </service>
+        <receiver android:name=".AwarenessWeatherService$AwarenessBroadcastReceiver" />
+        <service
+            android:name=".OpenWeatherService">
+            <intent-filter>
+                <action android:name="com.firebase.jobdispatcher.ACTION_EXECUTE" />
             </intent-filter>
             <intent-filter>
                 <action android:name="com.xlythe.service.ACTION_RUN_MANUALLY" />
             </intent-filter>
         </service>
         <service
-            android:name=".OpenWeatherService"
-            android:exported="true"
-            android:permission="com.google.android.gms.permission.BIND_NETWORK_TASK_SERVICE">
+            android:name=".WeatherUndergroundService">
             <intent-filter>
-                <action android:name="com.google.android.gms.gcm.ACTION_TASK_READY" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="com.xlythe.service.ACTION_RUN_MANUALLY" />
-            </intent-filter>
-        </service>
-        <service
-            android:name=".WeatherUndergroundService"
-            android:exported="true"
-            android:permission="com.google.android.gms.permission.BIND_NETWORK_TASK_SERVICE">
-            <intent-filter>
-                <action android:name="com.google.android.gms.gcm.ACTION_TASK_READY" />
+                <action android:name="com.firebase.jobdispatcher.ACTION_EXECUTE" />
             </intent-filter>
             <intent-filter>
                 <action android:name="com.xlythe.service.ACTION_RUN_MANUALLY" />

@@ -9,8 +9,6 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 import android.util.Pair;
 
-import com.google.android.gms.gcm.GcmNetworkManager;
-import com.google.android.gms.gcm.TaskParams;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -37,23 +35,21 @@ import java.util.concurrent.TimeUnit;
 public abstract class LocationBasedService extends WeatherService {
     private static final String TAG = LocationBasedService.class.getSimpleName();
 
-    public static final String ACTION_RUN_MANUALLY = "com.xlythe.service.ACTION_RUN_MANUALLY";
     private static final long LOCATION_TIMEOUT_IN_SECONDS = 10;
     private static final int NETWORK_TIMEOUT_IN_MILLIS = 10 * 1000;
 
     private Bundle mParams;
 
     @Override
-    public int onRunTask(final TaskParams params) {
-        if (DEBUG) Log.d(TAG, "Building GoogleApiClient");
-        final Location location = getLocation();
+    public Result onRunTask(Bundle params) {
+        Location location = getLocation();
         if (location == null) {
             if (DEBUG) Log.d(TAG, "No location found");
-            return GcmNetworkManager.RESULT_RESCHEDULE;
+            return Result.RESCHEDULE;
         }
 
         try {
-            mParams = params.getExtras();
+            mParams = params;
 
             if (DEBUG) Log.d(TAG, "Creating url");
             String requestUrl = createUrl(location);
@@ -66,12 +62,12 @@ public abstract class LocationBasedService extends WeatherService {
             parse(input);
         } catch (IOException e) {
             if (DEBUG) Log.e(TAG, "IO Exception", e);
-            return GcmNetworkManager.RESULT_RESCHEDULE;
+            return Result.RESCHEDULE;
         } catch (JSONException e) {
             if (DEBUG) Log.e(TAG, "JSON Exception", e);
         }
 
-        return GcmNetworkManager.RESULT_SUCCESS;
+        return Result.SUCCESS;
     }
 
     protected Bundle getParams() {
@@ -156,7 +152,8 @@ public abstract class LocationBasedService extends WeatherService {
                     StringBuilder sb = new StringBuilder();
                     String line;
                     while ((line = br.readLine()) != null) {
-                        sb.append(line + "\n");
+                        sb.append(line);
+                        sb.append("\n");
                     }
                     br.close();
                     return sb.toString();
