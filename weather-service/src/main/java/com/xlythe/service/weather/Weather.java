@@ -1,12 +1,17 @@
 package com.xlythe.service.weather;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.annotation.WorkerThread;
 
+import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -125,10 +130,25 @@ public abstract class Weather implements ParcelableUtils.RestorableParcelable {
     private int windKph = DEFAULT_WIND_KPH;
     private long lastUpdate;
 
+    @Nullable
+    private WeatherReceiver weatherReceiver;
+
     public Weather() {}
 
     protected Weather(Parcel in) {
         readFromParcel(in);
+    }
+
+    protected Weather(Context context, String action) {
+        weatherReceiver = new WeatherReceiver(context, action, this);
+        weatherReceiver.register();
+        restore(context);
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        if (weatherReceiver != null) weatherReceiver.unregister();
+        super.finalize();
     }
 
     @Override
@@ -379,5 +399,46 @@ public abstract class Weather implements ParcelableUtils.RestorableParcelable {
     public String toString() {
         return String.format("Weather{tempC=%s, condition=%s, moonPhase=%s, sunrise=%s, sunset=%s, windKph=%s, lastUpdate=%s}",
                 tempC, condition, moonPhase, sunrise, sunset, windKph, SimpleDateFormat.getDateTimeInstance().format(new Date(lastUpdate)));
+    }
+
+    /**
+     * A BroadcastReceiver that listens to weather updates and invalidates the Weather object
+     * whenever things change. We use a WeakReference and register to the Application context
+     * because we're not tied to any specific Activity/Service lifecycle. The Weather object we're
+     * tied to is expected to unregister us when they are destroyed.
+     * */
+    private static final class WeatherReceiver extends BroadcastReceiver {
+        private final Context context;
+        private final String action;
+        private final WeakReference<Weather> weakWeather;
+
+        WeatherReceiver(Context context, String action, Weather weather) {
+            this.context = context.getApplicationContext();
+            this.action = action;
+            this.weakWeather = new WeakReference<>(weather);
+        }
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Weather weather = weakWeather.get();
+            if (weather == null) {
+                unregister();
+                return;
+            }
+
+            weather.restore(context);
+        }
+
+        void register() {
+            context.registerReceiver(this, new IntentFilter(action));
+        }
+
+        void unregister() {
+            try {
+                context.unregisterReceiver(this);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

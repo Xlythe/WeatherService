@@ -39,6 +39,10 @@ public class OpenWeather extends Weather {
         super(in);
     }
 
+    public OpenWeather(Context context) {
+        super(context, OpenWeatherService.ACTION_DATA_CHANGED);
+    }
+
     @WorkerThread
     @Override
     public boolean fetch(Context context, Object... args) {

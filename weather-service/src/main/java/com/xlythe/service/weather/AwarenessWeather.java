@@ -1,7 +1,10 @@
 package com.xlythe.service.weather;
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.Nullable;
@@ -43,6 +46,10 @@ public class AwarenessWeather extends Weather {
 
     private AwarenessWeather(Parcel in) {
         super(in);
+    }
+
+    public AwarenessWeather(Context context) {
+        super(context, AwarenessWeatherService.ACTION_DATA_CHANGED);
     }
 
     @WorkerThread

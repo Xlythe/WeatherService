@@ -36,6 +36,10 @@ public class WeatherUnderground extends Weather {
         super(in);
     }
 
+    public WeatherUnderground(Context context) {
+        super(context, WeatherUndergroundService.ACTION_DATA_CHANGED);
+    }
+
     @WorkerThread
     @Override
     public boolean fetch(Context context, Object... args) {

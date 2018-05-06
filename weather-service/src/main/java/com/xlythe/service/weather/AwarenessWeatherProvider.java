@@ -40,9 +40,7 @@ public class AwarenessWeatherProvider extends WeatherProvider {
 
     @Override
     public Weather getWeather() {
-        Weather weather = new AwarenessWeather();
-        weather.restore(getContext());
-        return weather;
+        return new AwarenessWeather(getContext());
     }
 
     @Override

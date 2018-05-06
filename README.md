@@ -8,7 +8,7 @@ Where to Download
 -----------------
 ```groovy
 dependencies {
-  compile 'com.xlythe:weather-service:2.0.0'
+  compile 'com.xlythe:weather-service:2.0.1'
 }
 ```
 
@@ -46,8 +46,7 @@ How to use
 ----------
 After a few hours, there should be data. Load it via the load commands.
 ```java
-Weather weather = new AwarenessWeather();
-weather.restore(context);
+Weather weather = new AwarenessWeather(context);
 weather.getCelsius();
 ```
 

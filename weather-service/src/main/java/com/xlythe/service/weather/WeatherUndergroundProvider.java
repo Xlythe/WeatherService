@@ -47,9 +47,7 @@ public class WeatherUndergroundProvider extends WeatherProvider {
 
     @Override
     public Weather getWeather() {
-        Weather weather = new WeatherUnderground();
-        weather.restore(getContext());
-        return weather;
+        return new WeatherUnderground(getContext());
     }
 
     @Override
