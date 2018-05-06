@@ -79,12 +79,7 @@ public class AwarenessWeatherService extends WeatherService {
                 .setReplaceCurrent(true)
                 .build());
 
-        post(new Runnable() {
-            @Override
-            public void run() {
-                registerForSunriseSunset(context);
-            }
-        });
+        post(() -> registerForSunriseSunset(context));
 
         getSharedPreferences(context).edit()
                 .putBoolean(BUNDLE_SCHEDULED, true)
@@ -155,12 +150,21 @@ public class AwarenessWeatherService extends WeatherService {
             return Result.SUCCESS;
         }
 
+        if (DEBUG)
+            Log.d(TAG, "Running AwarenessWeatherService task");
+
         AwarenessWeather weather = new AwarenessWeather();
         weather.restore(this);
+        if (DEBUG)
+            Log.d(TAG, "Successfully restored our saved state");
         if (!weather.fetch(this)) {
+            if (DEBUG)
+                Log.d(TAG, "Failed to fetch. Rescheduling.");
             return Result.RESCHEDULE;
         }
         weather.save(this);
+        if (DEBUG)
+            Log.d(TAG, "Successfully saved our new state");
 
         broadcast(ACTION_DATA_CHANGED);
 
@@ -187,6 +191,8 @@ public class AwarenessWeatherService extends WeatherService {
     @SuppressWarnings({"MissingPermission"})
     private static boolean registerForSunrise(Context context) {
         if (!PermissionUtils.hasPermissions(context, Manifest.permission.ACCESS_FINE_LOCATION)) {
+            if (DEBUG)
+                Log.d(TAG, "Failed to register for sunrise due to lack of location permissions");
             return false;
         }
 
@@ -202,8 +208,12 @@ public class AwarenessWeatherService extends WeatherService {
             return true;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+            if (DEBUG)
+                Log.d(TAG, "Failed to register with Awareness", e);
             return false;
         } catch (ExecutionException e) {
+            if (DEBUG)
+                Log.d(TAG, "Failed to register with Awareness", e);
             return false;
         }
     }
@@ -212,6 +222,8 @@ public class AwarenessWeatherService extends WeatherService {
     @SuppressWarnings({"MissingPermission"})
     private static boolean registerForSunset(Context context) {
         if (!PermissionUtils.hasPermissions(context, Manifest.permission.ACCESS_FINE_LOCATION)) {
+            if (DEBUG)
+                Log.d(TAG, "Failed to register for sunset due to lack of location permissions");
             return false;
         }
 
@@ -227,8 +239,12 @@ public class AwarenessWeatherService extends WeatherService {
             return true;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+            if (DEBUG)
+                Log.d(TAG, "Failed to register with Awareness", e);
             return false;
         } catch (ExecutionException e) {
+            if (DEBUG)
+                Log.d(TAG, "Failed to register with Awareness", e);
             return false;
         }
     }

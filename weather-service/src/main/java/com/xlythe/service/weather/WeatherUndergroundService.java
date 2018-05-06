@@ -21,7 +21,6 @@ import org.json.JSONException;
  */
 public class WeatherUndergroundService extends LocationBasedService {
     private static final String TAG = WeatherUndergroundService.class.getSimpleName();
-    private static final boolean DEBUG = false;
 
     public static final String ACTION_DATA_CHANGED = "com.xlythe.service.weather.WUNDERGROUND_WEATHER_DATA_CHANGED";
 

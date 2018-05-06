@@ -7,11 +7,13 @@ import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.WorkerThread;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Locale;
 
 public abstract class Weather implements ParcelableUtils.RestorableParcelable {
-    static final boolean DEBUG = false;
+    static final boolean DEBUG = true;
 
     private static final String BUNDLE_STATE = "state:";
 
@@ -376,6 +378,6 @@ public abstract class Weather implements ParcelableUtils.RestorableParcelable {
     @Override
     public String toString() {
         return String.format("Weather{tempC=%s, condition=%s, moonPhase=%s, sunrise=%s, sunset=%s, windKph=%s, lastUpdate=%s}",
-                tempC, condition, moonPhase, sunrise, sunset, windKph, lastUpdate);
+                tempC, condition, moonPhase, sunrise, sunset, windKph, SimpleDateFormat.getDateTimeInstance().format(new Date(lastUpdate)));
     }
 }

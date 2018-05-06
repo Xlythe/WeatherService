@@ -82,16 +82,23 @@ public class AwarenessWeather extends Weather {
     @SuppressWarnings({"MissingPermission"})
     private com.google.android.gms.awareness.state.Weather getWeather(Context context) {
         if (!PermissionUtils.hasPermissions(context, Manifest.permission.ACCESS_FINE_LOCATION)) {
+            if (DEBUG)
+                Log.d(TAG, "Failed to get Awareness Weather due to lack of location permissions");
             return null;
         }
 
         try {
-            WeatherResponse weatherResponse = Tasks.await(Awareness.getSnapshotClient(context).getWeather());
-            return weatherResponse.getWeather();
+            if (DEBUG)
+                Log.d(TAG, "Requesting weather from Awareness");
+            return Tasks.await(Awareness.getSnapshotClient(context).getWeather()).getWeather();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+            if (DEBUG)
+                Log.d(TAG, "Failed to get weather from Awareness", e);
             return null;
         } catch (ExecutionException e) {
+            if (DEBUG)
+                Log.d(TAG, "Failed to get weather from Awareness", e);
             return null;
         }
     }

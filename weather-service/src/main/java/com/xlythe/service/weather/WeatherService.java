@@ -8,12 +8,13 @@ import android.os.HandlerThread;
 import android.support.annotation.Nullable;
 import android.support.annotation.UiThread;
 import android.support.annotation.WorkerThread;
+import android.util.Log;
 
 import com.firebase.jobdispatcher.JobParameters;
 import com.firebase.jobdispatcher.JobService;
 
 public abstract class WeatherService extends JobService {
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = Weather.DEBUG;;
 
     private static final HandlerThread sBackgroundThread = new HandlerThread("ServiceBackgroundThread");
 
@@ -26,13 +27,21 @@ public abstract class WeatherService extends JobService {
     }
 
     protected static void runImmediately(Context context, Class<? extends WeatherService> clazz, @Nullable Bundle extras) {
-        try {
-            WeatherService service = clazz.newInstance();
-            service.attachBaseContext(context);
-            service.onRunTask(extras);
-        } catch (Exception e) {
-            if (DEBUG) e.printStackTrace();
-        }
+        if (DEBUG)
+            Log.d(clazz.getSimpleName(), "Running " + clazz.getSimpleName() + " immediately");
+        post(() -> {
+            try {
+                WeatherService service = clazz.newInstance();
+                service.attachBaseContext(context);
+
+                if (DEBUG)
+                    Log.d(clazz.getSimpleName(), "Now executing " + clazz.getSimpleName() + ".onRunTask");
+                service.onRunTask(extras);
+            } catch (Exception e) {
+                if (DEBUG)
+                    Log.d(clazz.getSimpleName(), "Failed to run immediately", e);
+            }
+        });
     }
 
     protected static void post(Runnable runnable) {
