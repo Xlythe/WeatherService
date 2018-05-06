@@ -8,7 +8,7 @@ Where to Download
 -----------------
 ```groovy
 dependencies {
-  compile 'com.xlythe:weather-service:1.0.11'
+  compile 'com.xlythe:weather-service:2.0.0'
 }
 ```
 
