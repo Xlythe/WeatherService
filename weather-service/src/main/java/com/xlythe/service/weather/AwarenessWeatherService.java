@@ -69,6 +69,7 @@ public class AwarenessWeatherService extends WeatherService {
             Manifest.permission.RECEIVE_BOOT_COMPLETED
     })
     public static void schedule(Context context) {
+        if (DEBUG) Log.d(TAG, "Scheduling Awareness api");
         FirebaseJobDispatcher dispatcher = new FirebaseJobDispatcher(new GooglePlayDriver(context));
         dispatcher.mustSchedule(dispatcher.newJobBuilder()
                 .setService(AwarenessWeatherService.class)

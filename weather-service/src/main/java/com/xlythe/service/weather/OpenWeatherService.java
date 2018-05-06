@@ -53,7 +53,7 @@ public class OpenWeatherService extends LocationBasedService {
             Manifest.permission.RECEIVE_BOOT_COMPLETED
     })
     public static void schedule(Context context, String apiKey) {
-        if (DEBUG) Log.d(TAG, "Scheduling weather api");
+        if (DEBUG) Log.d(TAG, "Scheduling OpenWeather api");
         getSharedPreferences(context).edit().putString(BUNDLE_API_KEY, apiKey).apply();
         FirebaseJobDispatcher dispatcher = new FirebaseJobDispatcher(new GooglePlayDriver(context));
         dispatcher.mustSchedule(dispatcher.newJobBuilder()

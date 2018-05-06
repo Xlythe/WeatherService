@@ -57,7 +57,7 @@ public class WeatherUndergroundService extends LocationBasedService {
             Manifest.permission.RECEIVE_BOOT_COMPLETED
     })
     public static void schedule(Context context, String apiKey) {
-        if (DEBUG) Log.d(TAG, "Scheduling weather api");
+        if (DEBUG) Log.d(TAG, "Scheduling WeatherUnderground api");
         getSharedPreferences(context).edit().putString(BUNDLE_API_KEY, apiKey).apply();
         FirebaseJobDispatcher dispatcher = new FirebaseJobDispatcher(new GooglePlayDriver(context));
 
@@ -95,7 +95,8 @@ public class WeatherUndergroundService extends LocationBasedService {
 
     public static void cancel(Context context) {
         FirebaseJobDispatcher dispatcher = new FirebaseJobDispatcher(new GooglePlayDriver(context));
-        dispatcher.cancel(TAG);
+        dispatcher.cancel(TAG_WEATHER);
+        dispatcher.cancel(TAG_ASTRONOMY);
         getSharedPreferences(context).edit().putBoolean(BUNDLE_SCHEDULED, false).apply();
     }
 
