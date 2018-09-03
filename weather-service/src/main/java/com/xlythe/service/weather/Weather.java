@@ -19,7 +19,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
 
 public abstract class Weather implements ParcelableUtils.RestorableParcelable {
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
 
     private static final String BUNDLE_STATE = "state:";
 
