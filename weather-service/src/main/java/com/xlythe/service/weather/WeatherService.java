@@ -15,7 +15,7 @@ import androidx.annotation.UiThread;
 import androidx.annotation.WorkerThread;
 
 public abstract class WeatherService extends JobService {
-    static final boolean DEBUG = Weather.DEBUG;;
+    static final boolean DEBUG = Weather.DEBUG;
 
     private static final HandlerThread sBackgroundThread = new HandlerThread("ServiceBackgroundThread");
 
