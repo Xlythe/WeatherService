@@ -7,8 +7,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.support.annotation.Nullable;
-import android.support.annotation.WorkerThread;
 import android.util.Log;
 
 import com.google.android.gms.awareness.Awareness;
@@ -16,6 +14,9 @@ import com.google.android.gms.awareness.snapshot.WeatherResponse;
 import com.google.android.gms.tasks.Tasks;
 
 import java.util.concurrent.ExecutionException;
+
+import androidx.annotation.Nullable;
+import androidx.annotation.WorkerThread;
 
 import static com.google.android.gms.awareness.state.Weather.CELSIUS;
 import static com.google.android.gms.awareness.state.Weather.CONDITION_CLOUDY;

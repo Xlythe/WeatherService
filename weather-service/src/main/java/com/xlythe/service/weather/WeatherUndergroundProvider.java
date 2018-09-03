@@ -4,7 +4,8 @@ import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.IntentFilter;
-import android.support.annotation.RequiresPermission;
+
+import androidx.annotation.RequiresPermission;
 
 public class WeatherUndergroundProvider extends WeatherProvider {
     private final String mApiKey;

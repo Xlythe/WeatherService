@@ -7,9 +7,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.annotation.RequiresPermission;
-import android.support.annotation.WorkerThread;
 import android.util.Log;
 
 import com.firebase.jobdispatcher.FirebaseJobDispatcher;
@@ -24,6 +21,10 @@ import com.google.android.gms.tasks.Tasks;
 
 import java.util.Calendar;
 import java.util.concurrent.ExecutionException;
+
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresPermission;
+import androidx.annotation.WorkerThread;
 
 /**
  * A service that queries the GoogleApiClient for the latest weather information

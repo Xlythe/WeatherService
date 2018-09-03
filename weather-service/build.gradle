@@ -1,12 +1,11 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 27
-    buildToolsVersion '27.0.3'
+    compileSdkVersion 28
 
     defaultConfig {
         minSdkVersion 14
-        targetSdkVersion 27
+        targetSdkVersion 28
         versionCode 2
         versionName project.property("bintray.libraryVersion")
     }
@@ -20,10 +19,12 @@ android {
 }
 
 dependencies {
+    def withoutSupportLib = { exclude group: 'com.android.support' }
     api fileTree(include: ['*.jar'], dir: 'libs')
-    api 'com.firebase:firebase-jobdispatcher:+'
-    api 'com.google.android.gms:play-services-location:+'
-    api 'com.google.android.gms:play-services-awareness:+'
+    implementation 'androidx.appcompat:appcompat:+'
+    api 'com.firebase:firebase-jobdispatcher:+', withoutSupportLib
+    api 'com.google.android.gms:play-services-location:+', withoutSupportLib
+    api 'com.google.android.gms:play-services-awareness:+', withoutSupportLib
 }
 
 apply from: 'https://raw.githubusercontent.com/bourdakos1/jCenter-Upload/master/upload.gradle'

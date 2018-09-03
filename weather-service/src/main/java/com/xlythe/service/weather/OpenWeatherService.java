@@ -4,8 +4,6 @@ import android.Manifest;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.annotation.RequiresPermission;
 import android.util.Log;
 
 import com.firebase.jobdispatcher.Constraint;
@@ -15,6 +13,9 @@ import com.firebase.jobdispatcher.Lifetime;
 import com.firebase.jobdispatcher.Trigger;
 
 import org.json.JSONException;
+
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresPermission;
 
 /**
  * Query open weather map for current weather conditions

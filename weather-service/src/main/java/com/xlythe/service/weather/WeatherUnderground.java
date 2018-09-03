@@ -2,12 +2,13 @@ package com.xlythe.service.weather;
 
 import android.content.Context;
 import android.os.Parcel;
-import android.support.annotation.NonNull;
-import android.support.annotation.WorkerThread;
 import android.util.Log;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.WorkerThread;
 
 /**
  * Parses wunderground for the current weather at the user's lat/lng.
