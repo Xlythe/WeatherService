@@ -21,7 +21,7 @@ android {
 dependencies {
     def withoutSupportLib = { exclude group: 'com.android.support' }
     api fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'androidx.appcompat:appcompat:+'
+    api 'androidx.appcompat:appcompat:+'
     api 'com.firebase:firebase-jobdispatcher:+', withoutSupportLib
     api 'com.google.android.gms:play-services-location:+', withoutSupportLib
     api 'com.google.android.gms:play-services-awareness:+', withoutSupportLib
