@@ -36,7 +36,7 @@ public class OpenWeatherService extends LocationBasedService {
     private static final String BUNDLE_API_KEY = "api_key";
     private static final String BUNDLE_FREQUENCY = "frequency";
 
-    private static final String URL = "http://api.openweathermap.org/data/2.5/weather";
+    private static final String URL = "https://api.openweathermap.org/data/2.5/weather";
     private static final String PARAM_LAT = "lat";
     private static final String PARAM_LNG = "lon";
     private static final String PARAM_API_KEY = "appid";

@@ -43,8 +43,8 @@ public class WeatherUndergroundService extends LocationBasedService {
     private static final String BUNDLE_TAG = "tag";
     private static final String BUNDLE_FREQUENCY = "frequency";
 
-    private static final String URL_WEATHER = "http://api.wunderground.com/api/%s/geolookup/conditions/q/%s,%s.json"; // apiKey, latitude, longitude
-    private static final String URL_ASTRONOMY = "http://api.wunderground.com/api/%s/astronomy/q/%s,%s.json"; // apiKey, latitude, longitude
+    private static final String URL_WEATHER = "https://api.wunderground.com/api/%s/geolookup/conditions/q/%s,%s.json"; // apiKey, latitude, longitude
+    private static final String URL_ASTRONOMY = "https://api.wunderground.com/api/%s/astronomy/q/%s,%s.json"; // apiKey, latitude, longitude
 
     public WeatherUndergroundService(@NonNull Context appContext, @NonNull WorkerParameters params) {
         super(appContext, params);
