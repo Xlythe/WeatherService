@@ -24,9 +24,6 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <meta-data
-            android:name="com.google.android.awareness.API_KEY"
-            android:value="YOUR_KEY_HERE"/>
     </application>
 
 </manifest>
