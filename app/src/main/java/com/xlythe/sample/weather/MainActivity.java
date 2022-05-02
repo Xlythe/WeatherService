@@ -17,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 public class MainActivity extends AppCompatActivity {
+    private static final String API_KEY = "{insert_api_key_here}";
     private static final String[] REQUIRED_PERMISSIONS = new String[] {
             Manifest.permission.ACCESS_FINE_LOCATION,
     };
@@ -29,13 +30,15 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    private WeatherProvider mWeatherProvider = new OpenWeatherProvider(this, "API_KEY");
+    private WeatherProvider mWeatherProvider;
 
     @SuppressWarnings("MissingPermission")
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mWeatherProvider = new OpenWeatherProvider(this, API_KEY);
 
         findViewById(R.id.sync).setOnClickListener(v -> {
             mWeatherProvider.runImmediately();

@@ -95,6 +95,10 @@ public class OpenWeatherService extends LocationBasedService {
         return getSharedPreferences(context).getString(BUNDLE_API_KEY, null);
     }
 
+    static void setApiKey(Context context, String apiKey) {
+        getSharedPreferences(context).edit().putString(BUNDLE_API_KEY, apiKey).apply();
+    }
+
     public static void setFrequency(Context context, long frequencyInMillis) {
         getSharedPreferences(context).edit()
                 .putBoolean(BUNDLE_SCHEDULED, true)

@@ -13,6 +13,7 @@ public class OpenWeatherProvider extends WeatherProvider {
     public OpenWeatherProvider(Context context, String apiKey) {
         super(context);
         mApiKey = apiKey;
+        OpenWeatherService.setApiKey(context, apiKey);
     }
 
     @RequiresPermission(allOf = {
