@@ -1,5 +1,6 @@
 package com.xlythe.service.weather;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -11,12 +12,17 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
 import androidx.annotation.WorkerThread;
+import androidx.core.content.ContextCompat;
 import androidx.work.Data;
 import androidx.work.ListenableWorker;
 import androidx.work.WorkerParameters;
 import androidx.work.impl.utils.futures.SettableFuture;
 
 import com.google.common.util.concurrent.ListenableFuture;
+
+import java.lang.reflect.Constructor;
+import java.util.HashSet;
+import java.util.UUID;
 
 public abstract class WeatherService extends ListenableWorker {
     static final boolean DEBUG = Weather.DEBUG;
@@ -42,6 +48,7 @@ public abstract class WeatherService extends ListenableWorker {
     @NonNull
     @UiThread
     @Override
+    @SuppressLint("RestrictedApi")
     public ListenableFuture<ListenableWorker.Result> startWork() {
         SettableFuture<ListenableWorker.Result> future = SettableFuture.create();
         post(() -> {
@@ -111,8 +118,18 @@ public abstract class WeatherService extends ListenableWorker {
 
         post(() -> {
             try {
-                // TODO: Pass params into class
-                WeatherService service = clazz.newInstance();
+                Constructor<? extends WeatherService> constructor = clazz.getConstructor(Context.class, WorkerParameters.class);
+                @SuppressLint("RestrictedApi") WeatherService service = constructor.newInstance(context, new WorkerParameters(
+                        UUID.randomUUID(),
+                        Data.EMPTY,
+                        new HashSet<>(),
+                        null,
+                        0,
+                        ContextCompat.getMainExecutor(context),
+                        null,
+                        null,
+                        null,
+                        null));
 
                 if (DEBUG) {
                     Log.d(clazz.getSimpleName(), "Now executing " + clazz.getSimpleName() + ".startWork");
