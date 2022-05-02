@@ -6,16 +6,19 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.firebase.jobdispatcher.Constraint;
-import com.firebase.jobdispatcher.FirebaseJobDispatcher;
-import com.firebase.jobdispatcher.GooglePlayDriver;
-import com.firebase.jobdispatcher.Lifetime;
-import com.firebase.jobdispatcher.Trigger;
-
 import org.json.JSONException;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresPermission;
+import androidx.work.Constraints;
+import androidx.work.ExistingPeriodicWorkPolicy;
+import androidx.work.NetworkType;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
+import androidx.work.WorkerParameters;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * Query open weather map for current weather conditions
@@ -38,6 +41,10 @@ public class OpenWeatherService extends LocationBasedService {
     private static final String PARAM_LNG = "lon";
     private static final String PARAM_API_KEY = "appid";
 
+    public OpenWeatherService(@NonNull Context appContext, @NonNull WorkerParameters params) {
+        super(appContext, params);
+    }
+
     @RequiresPermission(allOf = {
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.ACCESS_COARSE_LOCATION,
@@ -56,16 +63,19 @@ public class OpenWeatherService extends LocationBasedService {
     public static void schedule(Context context, String apiKey) {
         if (DEBUG) Log.d(TAG, "Scheduling OpenWeather api");
         getSharedPreferences(context).edit().putString(BUNDLE_API_KEY, apiKey).apply();
-        FirebaseJobDispatcher dispatcher = new FirebaseJobDispatcher(new GooglePlayDriver(context));
-        dispatcher.mustSchedule(dispatcher.newJobBuilder()
-                .setService(WeatherUndergroundService.class)
-                .setTag(TAG)
-                .setRecurring(true)
-                .setTrigger(Trigger.executionWindow(getFrequency(context), getFrequency(context) + FLEX))
-                .setConstraints(Constraint.ON_ANY_NETWORK)
-                .setLifetime(Lifetime.FOREVER)
-                .setReplaceCurrent(true)
-                .build());
+
+        Constraints constraints = new Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build();
+
+        PeriodicWorkRequest request =
+                new PeriodicWorkRequest.Builder(OpenWeatherService.class, getFrequency(context), TimeUnit.SECONDS)
+                        .setConstraints(constraints)
+                        .addTag(TAG)
+                        .build();
+
+        WorkManager.getInstance(context).enqueueUniquePeriodicWork(TAG, ExistingPeriodicWorkPolicy.REPLACE, request);
+
         getSharedPreferences(context).edit()
                 .putBoolean(BUNDLE_SCHEDULED, true)
                 .putLong(BUNDLE_SCHEDULE_TIME, System.currentTimeMillis())
@@ -73,8 +83,7 @@ public class OpenWeatherService extends LocationBasedService {
     }
 
     public static void cancel(Context context) {
-        FirebaseJobDispatcher dispatcher = new FirebaseJobDispatcher(new GooglePlayDriver(context));
-        dispatcher.cancel(TAG);
+        WorkManager.getInstance(context).cancelUniqueWork(TAG);
         getSharedPreferences(context).edit().putBoolean(BUNDLE_SCHEDULED, false).apply();
     }
 
@@ -98,7 +107,7 @@ public class OpenWeatherService extends LocationBasedService {
     }
 
     private static boolean hasRunRecently(Context context) {
-        Weather weather = new WeatherUnderground();
+        Weather weather = new OpenWeather();
         weather.restore(context);
         return weather.getLastUpdate() > System.currentTimeMillis() - getFrequency(context) + FLEX;
     }
@@ -109,12 +118,12 @@ public class OpenWeatherService extends LocationBasedService {
 
     @Override
     protected String getApiKey() {
-        return getApiKey(this);
+        return getApiKey(getContext());
     }
 
     @Override
     protected boolean isScheduled() {
-        return isScheduled(this);
+        return isScheduled(getContext());
     }
 
     @RequiresPermission(allOf = {
@@ -125,18 +134,18 @@ public class OpenWeatherService extends LocationBasedService {
     })
     @Override
     protected void schedule(String apiKey) {
-        schedule(this, apiKey);
+        schedule(getContext(), apiKey);
     }
 
     @Override
     protected void cancel() {
-        cancel(this);
+        cancel(getContext());
     }
 
     @Override
     public Result onRunTask(@Nullable Bundle extras) {
         // Extras are null when run manually.
-        if (extras != null && hasRunRecently(this)) {
+        if (extras != null && hasRunRecently(getContext())) {
             return Result.SUCCESS;
         }
 
@@ -156,11 +165,11 @@ public class OpenWeatherService extends LocationBasedService {
     @Override
     protected void parse(String json) throws JSONException {
         OpenWeather weather = new OpenWeather();
-        weather.restore(this);
-        if (!weather.fetch(this, json)) {
+        weather.restore(getContext());
+        if (!weather.fetch(getContext(), json)) {
             throw new JSONException("Failed to parse data");
         }
-        weather.save(this);
+        weather.save(getContext());
         broadcast(ACTION_DATA_CHANGED);
     }
 }

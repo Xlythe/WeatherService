@@ -7,7 +7,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.widget.TextView;
 
-import com.xlythe.service.weather.AwarenessWeatherProvider;
+import com.xlythe.service.weather.OpenWeatherProvider;
 import com.xlythe.service.weather.PermissionUtils;
 import com.xlythe.service.weather.WeatherProvider;
 
@@ -29,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    private WeatherProvider mWeatherProvider = new AwarenessWeatherProvider(this);
+    private WeatherProvider mWeatherProvider = new OpenWeatherProvider(this, "API_KEY");
 
     @SuppressWarnings("MissingPermission")
     @Override

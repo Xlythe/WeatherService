@@ -3,17 +3,8 @@
     package="com.xlythe.service.weather">
     <application>
         <service
-            android:name=".AwarenessWeatherService">
-            <intent-filter>
-                <action android:name="com.firebase.jobdispatcher.ACTION_EXECUTE" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="com.xlythe.service.ACTION_RUN_MANUALLY" />
-            </intent-filter>
-        </service>
-        <receiver android:name=".AwarenessWeatherService$AwarenessBroadcastReceiver" />
-        <service
-            android:name=".OpenWeatherService">
+            android:name=".OpenWeatherService"
+            android:exported="true">
             <intent-filter>
                 <action android:name="com.firebase.jobdispatcher.ACTION_EXECUTE" />
             </intent-filter>
@@ -22,7 +13,8 @@
             </intent-filter>
         </service>
         <service
-            android:name=".WeatherUndergroundService">
+            android:name=".WeatherUndergroundService"
+            android:exported="true">
             <intent-filter>
                 <action android:name="com.firebase.jobdispatcher.ACTION_EXECUTE" />
             </intent-filter>
@@ -30,7 +22,8 @@
                 <action android:name="com.xlythe.service.ACTION_RUN_MANUALLY" />
             </intent-filter>
         </service>
-        <receiver android:name=".UpdateReceiver">
+        <receiver android:name=".UpdateReceiver"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>

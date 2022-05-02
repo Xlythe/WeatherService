@@ -6,16 +6,20 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.firebase.jobdispatcher.Constraint;
-import com.firebase.jobdispatcher.FirebaseJobDispatcher;
-import com.firebase.jobdispatcher.GooglePlayDriver;
-import com.firebase.jobdispatcher.Lifetime;
-import com.firebase.jobdispatcher.Trigger;
-
 import org.json.JSONException;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresPermission;
+import androidx.work.Constraints;
+import androidx.work.Data;
+import androidx.work.ExistingPeriodicWorkPolicy;
+import androidx.work.NetworkType;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
+import androidx.work.WorkerParameters;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * Query open weather map for current weather conditions
@@ -42,6 +46,10 @@ public class WeatherUndergroundService extends LocationBasedService {
     private static final String URL_WEATHER = "http://api.wunderground.com/api/%s/geolookup/conditions/q/%s,%s.json"; // apiKey, latitude, longitude
     private static final String URL_ASTRONOMY = "http://api.wunderground.com/api/%s/astronomy/q/%s,%s.json"; // apiKey, latitude, longitude
 
+    public WeatherUndergroundService(@NonNull Context appContext, @NonNull WorkerParameters params) {
+        super(appContext, params);
+    }
+
     @RequiresPermission(allOf = {
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.ACCESS_COARSE_LOCATION,
@@ -60,33 +68,34 @@ public class WeatherUndergroundService extends LocationBasedService {
     public static void schedule(Context context, String apiKey) {
         if (DEBUG) Log.d(TAG, "Scheduling WeatherUnderground api");
         getSharedPreferences(context).edit().putString(BUNDLE_API_KEY, apiKey).apply();
-        FirebaseJobDispatcher dispatcher = new FirebaseJobDispatcher(new GooglePlayDriver(context));
 
-        Bundle weatherMetadata = new Bundle();
-        weatherMetadata.putString(BUNDLE_TAG, TAG_WEATHER);
-        dispatcher.mustSchedule(dispatcher.newJobBuilder()
-                .setService(WeatherUndergroundService.class)
-                .setTag(TAG_WEATHER)
-                .setRecurring(true)
-                .setTrigger(Trigger.executionWindow(getFrequency(context), getFrequency(context) + FLEX_WEATHER))
-                .setConstraints(Constraint.ON_ANY_NETWORK)
-                .setLifetime(Lifetime.FOREVER)
-                .setReplaceCurrent(true)
-                .setExtras(weatherMetadata)
-                .build());
+        Constraints constraints = new Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build();
 
-        Bundle astronomyMetadata = new Bundle();
-        astronomyMetadata.putString(BUNDLE_TAG, TAG_ASTRONOMY);
-        dispatcher.mustSchedule(dispatcher.newJobBuilder()
-                .setService(WeatherUndergroundService.class)
-                .setTag(TAG_ASTRONOMY)
-                .setRecurring(true)
-                .setTrigger(Trigger.executionWindow(FREQUENCY_ASTRONOMY, FREQUENCY_ASTRONOMY + FLEX_ASTRONOMY))
-                .setConstraints(Constraint.ON_ANY_NETWORK)
-                .setLifetime(Lifetime.FOREVER)
-                .setReplaceCurrent(true)
-                .setExtras(astronomyMetadata)
-                .build());
+        WorkManager.getInstance(context)
+                .enqueueUniquePeriodicWork(
+                        TAG_WEATHER,
+                        ExistingPeriodicWorkPolicy.REPLACE,
+                        new PeriodicWorkRequest.Builder(WeatherUndergroundService.class, getFrequency(context), TimeUnit.SECONDS)
+                                .setConstraints(constraints)
+                                .setInputData(new Data.Builder()
+                                        .putString(BUNDLE_TAG, TAG_WEATHER)
+                                        .build())
+                                .addTag(TAG_WEATHER)
+                                .build());
+
+        WorkManager.getInstance(context)
+                .enqueueUniquePeriodicWork(
+                        TAG_ASTRONOMY,
+                        ExistingPeriodicWorkPolicy.REPLACE,
+                        new PeriodicWorkRequest.Builder(WeatherUndergroundService.class, FREQUENCY_ASTRONOMY, TimeUnit.SECONDS)
+                                .setConstraints(constraints)
+                                .setInputData(new Data.Builder()
+                                        .putString(BUNDLE_TAG, TAG_ASTRONOMY)
+                                        .build())
+                                .addTag(TAG_ASTRONOMY)
+                                .build());
 
         getSharedPreferences(context).edit()
                 .putBoolean(BUNDLE_SCHEDULED, true)
@@ -95,9 +104,8 @@ public class WeatherUndergroundService extends LocationBasedService {
     }
 
     public static void cancel(Context context) {
-        FirebaseJobDispatcher dispatcher = new FirebaseJobDispatcher(new GooglePlayDriver(context));
-        dispatcher.cancel(TAG_WEATHER);
-        dispatcher.cancel(TAG_ASTRONOMY);
+        WorkManager.getInstance(context).cancelUniqueWork(TAG_WEATHER);
+        WorkManager.getInstance(context).cancelUniqueWork(TAG_ASTRONOMY);
         getSharedPreferences(context).edit().putBoolean(BUNDLE_SCHEDULED, false).apply();
     }
 
@@ -132,12 +140,12 @@ public class WeatherUndergroundService extends LocationBasedService {
 
     @Override
     protected String getApiKey() {
-        return getApiKey(this);
+        return getApiKey(getContext());
     }
 
     @Override
     protected boolean isScheduled() {
-        return isScheduled(this);
+        return isScheduled(getContext());
     }
 
     @RequiresPermission(allOf = {
@@ -148,12 +156,12 @@ public class WeatherUndergroundService extends LocationBasedService {
     })
     @Override
     protected void schedule(String apiKey) {
-        schedule(this, apiKey);
+        schedule(getContext(), apiKey);
     }
 
     @Override
     protected void cancel() {
-        cancel(this);
+        cancel(getContext());
     }
 
     @Override
@@ -172,7 +180,7 @@ public class WeatherUndergroundService extends LocationBasedService {
             astronomyMetadata.putString(BUNDLE_TAG, TAG_ASTRONOMY);
             return super.onRunTask(astronomyMetadata);
         } else if (TAG_WEATHER.equals(extras.getString(BUNDLE_TAG))
-                && hasRunRecently(this)) {
+                && hasRunRecently(getContext())) {
             return Result.SUCCESS;
         }
 
@@ -181,7 +189,7 @@ public class WeatherUndergroundService extends LocationBasedService {
 
     @Override
     protected String createUrl(double latitude, double longitude) {
-        if (TAG_ASTRONOMY.equals(getParams().getString(BUNDLE_TAG))) {
+        if (TAG_ASTRONOMY.equals(getTaskParams().getString(BUNDLE_TAG))) {
             return new Builder()
                     .url(String.format(URL_ASTRONOMY, getApiKey(), latitude, longitude))
                     .build();
@@ -195,11 +203,11 @@ public class WeatherUndergroundService extends LocationBasedService {
     @Override
     protected void parse(String json) throws JSONException {
         WeatherUnderground weather = new WeatherUnderground();
-        weather.restore(this);
-        if (!weather.fetch(this, json)) {
+        weather.restore(getContext());
+        if (!weather.fetch(getContext(), json)) {
             throw new JSONException("Failed to parse data");
         }
-        weather.save(this);
+        weather.save(getContext());
         broadcast(ACTION_DATA_CHANGED);
     }
 }

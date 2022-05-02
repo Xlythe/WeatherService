@@ -16,10 +16,6 @@ public class UpdateReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         if (Intent.ACTION_MY_PACKAGE_REPLACED.equals(intent.getAction())) {
-            if (AwarenessWeatherService.isScheduled(context)) {
-                Log.v(TAG, "Rescheduling AwarenessWeatherService");
-                AwarenessWeatherService.schedule(context);
-            }
             if (OpenWeatherService.isScheduled(context)) {
                 Log.v(TAG, "Rescheduling OpenWeatherService");
                 OpenWeatherService.schedule(context, OpenWeatherService.getApiKey(context));

@@ -1,6 +1,7 @@
 package com.xlythe.service.weather;
 
 import android.Manifest;
+import android.content.Context;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Looper;
@@ -29,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.work.WorkerParameters;
 
 /**
  * A service that first grabs the user's most recent location before querying a website.
@@ -40,6 +42,10 @@ public abstract class LocationBasedService extends WeatherService {
     private static final int NETWORK_TIMEOUT_IN_MILLIS = 10 * 1000;
 
     private Bundle mParams;
+
+    public LocationBasedService(@NonNull Context appContext, @NonNull WorkerParameters params) {
+        super(appContext, params);
+    }
 
     @Override
     public Result onRunTask(Bundle params) {
@@ -71,18 +77,18 @@ public abstract class LocationBasedService extends WeatherService {
         return Result.SUCCESS;
     }
 
-    protected Bundle getParams() {
+    protected Bundle getTaskParams() {
         return mParams;
     }
 
     @Nullable
     @SuppressWarnings({"MissingPermission"})
     private Location getLocation() {
-        if (!PermissionUtils.hasPermissions(this, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)) {
+        if (!PermissionUtils.hasPermissions(getContext(), Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)) {
             return null;
         }
 
-        FusedLocationProviderClient client = LocationServices.getFusedLocationProviderClient(this);
+        FusedLocationProviderClient client = LocationServices.getFusedLocationProviderClient(getContext());
 
         CountDownLatch latch = new CountDownLatch(1);
         LastKnownLocationCallback callback = new LastKnownLocationCallback(latch);

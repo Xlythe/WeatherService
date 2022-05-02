@@ -1,11 +1,11 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 32
 
     defaultConfig {
         minSdkVersion 14
-        targetSdkVersion 28
+        targetSdkVersion 32
         versionCode 2
         versionName project.property("bintray.libraryVersion")
     }
@@ -22,9 +22,9 @@ dependencies {
     def withoutSupportLib = { exclude group: 'com.android.support' }
     api fileTree(include: ['*.jar'], dir: 'libs')
     api 'androidx.appcompat:appcompat:+'
-    api 'com.firebase:firebase-jobdispatcher:+', withoutSupportLib
+    api "androidx.work:work-runtime:+"
     api 'com.google.android.gms:play-services-location:+', withoutSupportLib
-    api 'com.google.android.gms:play-services-awareness:+', withoutSupportLib
 }
 
-apply from: 'https://raw.githubusercontent.com/bourdakos1/jCenter-Upload/master/upload.gradle'
+// jCenter has been shut down. This script no longer compiles and needs to be updated to point to MavenCentral.
+// apply from: 'https://raw.githubusercontent.com/bourdakos1/jCenter-Upload/master/upload.gradle'
