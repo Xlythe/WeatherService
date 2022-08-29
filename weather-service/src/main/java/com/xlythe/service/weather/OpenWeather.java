@@ -54,7 +54,7 @@ public class OpenWeather extends Weather {
             JSONObject root = new JSONObject(json);
 
             if (DEBUG)
-                Log.d(TAG, "WeatherUnderground json: " + root);
+                Log.d(TAG, "OpenWeather json: " + root);
 
             // Start persisting values
             setCondition(OpenWeather.toCondition(root.getJSONArray("weather").getJSONObject(0).getString("main")));
