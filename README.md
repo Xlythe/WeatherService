@@ -8,7 +8,7 @@ Where to Download
 -----------------
 ```groovy
 dependencies {
-  implementation 'com.xlythe:weather-service:2.0.2'
+  implementation 'com.xlythe:weather-service:2.1'
 }
 ```
 
