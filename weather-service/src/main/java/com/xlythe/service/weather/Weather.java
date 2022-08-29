@@ -78,8 +78,8 @@ public abstract class Weather implements ParcelableUtils.RestorableParcelable {
         }
 
         @Override
-        public boolean equals(Object o) {
-            if (o != null && o instanceof Time) {
+        public boolean equals(@Nullable Object o) {
+            if (o instanceof Time) {
                 Time a = (Time) o;
                 return hour == a.hour && minute == a.minute;
             }
@@ -377,8 +377,8 @@ public abstract class Weather implements ParcelableUtils.RestorableParcelable {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (o != null && o instanceof Weather) {
+    public boolean equals(@Nullable Object o) {
+        if (o instanceof Weather) {
             Weather a = (Weather) o;
             return Objects.equals(tempC, a.tempC)
                     && Objects.equals(condition, a.condition)

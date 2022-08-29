@@ -13,6 +13,7 @@ import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.Priority;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
@@ -114,7 +115,7 @@ public abstract class LocationBasedService extends WeatherService {
                 LocationRequest
                         .create()
                         .setNumUpdates(1)
-                        .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY),
+                        .setPriority(Priority.PRIORITY_BALANCED_POWER_ACCURACY),
                 callback,
                 Looper.getMainLooper()
         );

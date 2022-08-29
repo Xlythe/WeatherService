@@ -74,7 +74,7 @@ public class OpenWeatherService extends LocationBasedService {
                         .addTag(TAG)
                         .build();
 
-        WorkManager.getInstance(context).enqueueUniquePeriodicWork(TAG, ExistingPeriodicWorkPolicy.REPLACE, request);
+        WorkManager.getInstance(context).enqueueUniquePeriodicWork(TAG, ExistingPeriodicWorkPolicy.UPDATE, request);
 
         getSharedPreferences(context).edit()
                 .putBoolean(BUNDLE_SCHEDULED, true)

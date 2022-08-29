@@ -16,25 +16,15 @@ Permissions
 -----------
 The following permissions are required in your AndroidManfiest.xml
 ```xml
-<!-- For open weather or weather underground -->
 <uses-permission android:name="android.permission.INTERNET" />
 <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-
-<!-- For awareness -->
-<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-<meta-data
-    android:name="com.google.android.awareness.API_KEY"
-    android:value="YOUR_API_KEY" />
 
 ```
 
 Scheduling
 ----------
 Once the required permissions have been obtained, schedule via the following commands.
-```java
-AwarenessWeatherService.schedule(this);
-```
 ```java
 OpenWeatherService.schedule(this, API_KEY);
 ```
@@ -46,7 +36,7 @@ How to use
 ----------
 After a few hours, there should be data. Load it via the load commands.
 ```java
-Weather weather = new AwarenessWeather(context);
+Weather weather = new OpenWeather(context);
 weather.getCelsius();
 ```
 

@@ -35,7 +35,6 @@ public class WeatherUndergroundService extends LocationBasedService {
 
     private static final String TAG_ASTRONOMY = WeatherUndergroundService.class.getSimpleName() + "_astronomy";
     private static final int FREQUENCY_ASTRONOMY = 23 * 60 * 60; // 23hrs in seconds
-    private static final int FLEX_ASTRONOMY = 60 * 60; // 1hr in seconds
 
     private static final String BUNDLE_SCHEDULED = "scheduled";
     private static final String BUNDLE_SCHEDULE_TIME = "schedule_time";
@@ -76,7 +75,7 @@ public class WeatherUndergroundService extends LocationBasedService {
         WorkManager.getInstance(context)
                 .enqueueUniquePeriodicWork(
                         TAG_WEATHER,
-                        ExistingPeriodicWorkPolicy.REPLACE,
+                        ExistingPeriodicWorkPolicy.UPDATE,
                         new PeriodicWorkRequest.Builder(WeatherUndergroundService.class, getFrequency(context), TimeUnit.SECONDS)
                                 .setConstraints(constraints)
                                 .setInputData(new Data.Builder()
@@ -88,7 +87,7 @@ public class WeatherUndergroundService extends LocationBasedService {
         WorkManager.getInstance(context)
                 .enqueueUniquePeriodicWork(
                         TAG_ASTRONOMY,
-                        ExistingPeriodicWorkPolicy.REPLACE,
+                        ExistingPeriodicWorkPolicy.UPDATE,
                         new PeriodicWorkRequest.Builder(WeatherUndergroundService.class, FREQUENCY_ASTRONOMY, TimeUnit.SECONDS)
                                 .setConstraints(constraints)
                                 .setInputData(new Data.Builder()
