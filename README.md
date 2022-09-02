@@ -8,7 +8,7 @@ Where to Download
 -----------------
 ```groovy
 dependencies {
-  implementation 'com.xlythe:weather-service:2.1.1'
+  implementation 'com.xlythe:weather-service:2.1.2'
 }
 ```
 
@@ -19,8 +19,11 @@ The following permissions are required in your AndroidManfiest.xml
 <uses-permission android:name="android.permission.INTERNET" />
 <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+```
+And the remaining permissions are optional, but help ensure consistent results.
+```xml
 <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
-
+<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 ```
 
 Scheduling
