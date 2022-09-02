@@ -3,8 +3,10 @@ package com.xlythe.service.weather;
 import android.Manifest;
 import android.content.Context;
 import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.util.Log;
 import android.util.Pair;
 
@@ -41,6 +43,7 @@ public abstract class LocationBasedService extends WeatherService {
 
     private static final long LOCATION_TIMEOUT_IN_SECONDS = 10;
     private static final int NETWORK_TIMEOUT_IN_MILLIS = 10 * 1000;
+    private static final long MAX_LOCATION_STALENESS_IN_MINUTES = 30;
 
     private Bundle mParams;
 
@@ -85,7 +88,7 @@ public abstract class LocationBasedService extends WeatherService {
     @Nullable
     @SuppressWarnings({"MissingPermission"})
     private Location getLocation() {
-        if (!PermissionUtils.hasPermissions(getContext(), Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)) {
+        if (!PermissionUtils.hasPermissions(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION)) {
             return null;
         }
 
@@ -112,13 +115,9 @@ public abstract class LocationBasedService extends WeatherService {
         latch = new CountDownLatch(1);
         callback = new LastKnownLocationCallback(latch);
         client.requestLocationUpdates(
-                LocationRequest
-                        .create()
-                        .setNumUpdates(1)
-                        .setPriority(Priority.PRIORITY_BALANCED_POWER_ACCURACY),
+                LocationRequest.create().setPriority(Priority.PRIORITY_BALANCED_POWER_ACCURACY),
                 callback,
-                Looper.getMainLooper()
-        );
+                Looper.getMainLooper());
         try {
             if (!latch.await(LOCATION_TIMEOUT_IN_SECONDS, TimeUnit.SECONDS)) {
                 Log.w(TAG, "Timed out waiting for a location after " + LOCATION_TIMEOUT_IN_SECONDS + " seconds");
@@ -126,8 +125,9 @@ public abstract class LocationBasedService extends WeatherService {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             Log.e(TAG, "Interrupted while waiting for location.", e);
+        } finally {
+            client.removeLocationUpdates(callback);
         }
-        client.removeLocationUpdates(callback);
         return callback.location;
     }
 
@@ -187,26 +187,37 @@ public abstract class LocationBasedService extends WeatherService {
             this.latch = latch;
         }
 
+        // Called by FusedLocationProviderClient#requestLocationUpdates
+        @Override
         public void onLocationResult(LocationResult result) {
-            location = getLocation(result.getLocations());
-            if (location != null) {
-                latch.countDown();
-            }
+            processLocation(result.getLastLocation());
         }
 
-        @Nullable
-        private static Location getLocation(@Nullable List<Location> locations) {
-            if (locations == null || locations.isEmpty()) {
-                return null;
-            }
-            return locations.get(0);
-        }
-
+        // Called by FusedLocationProviderClient#getLastLocation
         @Override
         public void onComplete(@NonNull Task<Location> task) {
             if (task.isSuccessful()) {
-                location = task.getResult();
+                processLocation(task.getResult());
             }
+
+            // Purposefully count down, even if we skipped the discovered location.
+            // We won't get any further updates.
+            latch.countDown();
+        }
+
+        private void processLocation(@Nullable Location location) {
+            if (location == null) {
+                return;
+            }
+
+            if (Build.VERSION.SDK_INT >= 17) {
+                long elapsedTimeMinutes = TimeUnit.NANOSECONDS.toMinutes(SystemClock.elapsedRealtimeNanos() - location.getElapsedRealtimeNanos());
+                if (elapsedTimeMinutes > MAX_LOCATION_STALENESS_IN_MINUTES) {
+                    return;
+                }
+            }
+
+            this.location = location;
             latch.countDown();
         }
     }
