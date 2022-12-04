@@ -125,6 +125,7 @@ public abstract class WeatherService extends ListenableWorker {
                         new HashSet<>(),
                         null,
                         0,
+                        0,
                         ContextCompat.getMainExecutor(context),
                         null,
                         null,
