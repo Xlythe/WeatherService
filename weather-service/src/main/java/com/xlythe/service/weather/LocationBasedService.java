@@ -115,7 +115,7 @@ public abstract class LocationBasedService extends WeatherService {
         latch = new CountDownLatch(1);
         callback = new LastKnownLocationCallback(latch);
         client.requestLocationUpdates(
-                LocationRequest.create().setPriority(Priority.PRIORITY_BALANCED_POWER_ACCURACY),
+                new LocationRequest.Builder(Priority.PRIORITY_LOW_POWER, 0).build(),
                 callback,
                 Looper.getMainLooper());
         try {
