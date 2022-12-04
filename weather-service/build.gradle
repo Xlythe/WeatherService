@@ -34,7 +34,7 @@ android {
 dependencies {
     api fileTree(include: ['*.jar'], dir: 'libs')
     api 'androidx.appcompat:appcompat:[1.5.1,)'
-    api "androidx.work:work-runtime:[2.7.1,)"
+    api 'androidx.work:work-runtime:[2.8.0-beta02,)'
     api 'com.google.android.gms:play-services-location:[21.0.1,)'
 }
 
