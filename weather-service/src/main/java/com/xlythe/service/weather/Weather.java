@@ -30,6 +30,8 @@ public abstract class Weather implements ParcelableUtils.RestorableParcelable {
     private static final int DEFAULT_TEMP_C = 20;
     private static final int DEFAULT_WIND_KPH = 0;
 
+    @Nullable private static Calendar CALENDAR;
+
     public enum Condition {
         SNOW, RAIN, CLOUDY, SUNNY;
     }
@@ -284,13 +286,11 @@ public abstract class Weather implements ParcelableUtils.RestorableParcelable {
     @WorkerThread
     protected abstract boolean fetch(Context context, Object... args);
 
-    private static Calendar CALENDAR;
-
-    private static void invalidateCalendar() {
+    private static synchronized void invalidateCalendar() {
         CALENDAR = null;
     }
 
-    private static Calendar getCurrentCalendar() {
+    private static synchronized Calendar getCurrentCalendar() {
         if (CALENDAR == null) {
             CALENDAR = Calendar.getInstance();
         }
