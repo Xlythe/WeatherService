@@ -60,6 +60,13 @@ public abstract class Weather implements ParcelableUtils.RestorableParcelable {
             this.minute = minute;
         }
 
+        public Time(long timeInMillis) {
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTimeInMillis(timeInMillis);
+            this.hour = calendar.get(Calendar.HOUR_OF_DAY);
+            this.minute = calendar.get(Calendar.MINUTE);
+        }
+
         protected Time(Parcel in) {
             hour = in.readInt();
             minute = in.readInt();

@@ -10,6 +10,9 @@ import org.json.JSONObject;
 import androidx.annotation.NonNull;
 import androidx.annotation.WorkerThread;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Parses wunderground for the current weather at the user's lat/lng.
  *
@@ -28,6 +31,21 @@ public class WeatherUnderground extends Weather {
             return new Weather[size];
         }
     };
+
+    private static final Map<Integer, MoonPhase> MOON_PHASES = new HashMap<>();
+
+    static {
+        // Age of moon is between 0 and 29
+        MOON_PHASES.put(0, MoonPhase.NEW_MOON);
+        MOON_PHASES.put(4, MoonPhase.WAXING_CRESCENT);
+        MOON_PHASES.put(7, MoonPhase.FIRST_QUARTER);
+        MOON_PHASES.put(11, MoonPhase.WAXING_GIBBOUS);
+        MOON_PHASES.put(15, MoonPhase.FULL_MOON);
+        MOON_PHASES.put(18, MoonPhase.WANING_GIBBOUS);
+        MOON_PHASES.put(22, MoonPhase.THIRD_QUARTER);
+        MOON_PHASES.put(25, MoonPhase.WANING_CRESCENT);
+        MOON_PHASES.put(29, MoonPhase.NEW_MOON);
+    }
 
     public WeatherUnderground() {
         super();
@@ -77,7 +95,7 @@ public class WeatherUnderground extends Weather {
                 JSONObject sunset = moon_phase.getJSONObject("sunset");
                 setSunset(new Time(sunset.getInt("hour"), sunset.getInt("minute")));
                 if (DEBUG)
-                    Log.d(TAG, "Sunrise set to " + getSunrise());
+                    Log.d(TAG, "Sunset set to " + getSunset());
             } else {
                 Log.w(TAG, "Unknown JSON object " + root);
                 return false;
@@ -104,27 +122,15 @@ public class WeatherUnderground extends Weather {
     }
 
     private static MoonPhase toMoonPhase(int ageOfMoon) {
-        // Age of moon is between 0 and 29
-        if (ageOfMoon == -1) {
-            return MoonPhase.FULL_MOON;
-        } else if (ageOfMoon < 3) {
-            return MoonPhase.NEW_MOON;
-        } else if (ageOfMoon < 7) {
-            return MoonPhase.WAXING_CRESCENT;
-        } else if (ageOfMoon < 10) {
-            return MoonPhase.FIRST_QUARTER;
-        } else if (ageOfMoon < 13) {
-            return MoonPhase.WAXING_GIBBOUS;
-        } else if (ageOfMoon < 19) {
-            return MoonPhase.FULL_MOON;
-        } else if (ageOfMoon < 22) {
-            return MoonPhase.WANING_GIBBOUS;
-        } else if (ageOfMoon < 24) {
-            return MoonPhase.THIRD_QUARTER;
-        } else if (ageOfMoon < 28) {
-            return MoonPhase.WANING_CRESCENT;
-        } else {
-            return MoonPhase.NEW_MOON;
+        int minDistance = Integer.MAX_VALUE;
+        MoonPhase closestPhase = MoonPhase.NEW_MOON;
+        for (Map.Entry<Integer, MoonPhase> entry : MOON_PHASES.entrySet()) {
+            int distanceToPhase = Math.abs(entry.getKey() - ageOfMoon);
+            if (distanceToPhase < minDistance) {
+                minDistance = distanceToPhase;
+                closestPhase = entry.getValue();
+            }
         }
+        return closestPhase;
     }
 }

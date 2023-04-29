@@ -23,7 +23,7 @@ public class MainActivity extends AppCompatActivity {
     };
     private static final int REQUEST_CODE_PERMISSIONS = 1;
 
-    private BroadcastReceiver mReceiver = new BroadcastReceiver() {
+    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             invalidate();

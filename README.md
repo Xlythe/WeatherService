@@ -26,6 +26,10 @@ And the remaining permissions are optional, but help ensure consistent results.
 <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 ```
 
+API Keys
+----------
+Purchase an API key from (Open Weather)[https://openweathermap.org/api], (Weather Underground)[https://www.wunderground.com/member/api-keys], or (Pirate Weather)[https://pirate-weather.apiable.io/]
+
 Scheduling
 ----------
 Once the required permissions have been obtained, schedule via the following commands.
@@ -34,6 +38,9 @@ OpenWeatherService.schedule(this, API_KEY);
 ```
 ```java
 WeatherUndergroundService.schedule(this, API_KEY);
+```
+```java
+PirateWeatherService.schedule(this, API_KEY);
 ```
 
 How to use
