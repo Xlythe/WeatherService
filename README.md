@@ -28,7 +28,7 @@ And the remaining permissions are optional, but help ensure consistent results.
 
 API Keys
 ----------
-Purchase an API key from (Open Weather)[https://openweathermap.org/api], (Weather Underground)[https://www.wunderground.com/member/api-keys], or (Pirate Weather)[https://pirate-weather.apiable.io/]
+Purchase an API key from [Open Weather](https://openweathermap.org/api), [Weather Underground](https://www.wunderground.com/member/api-keys), or [Pirate Weather](https://pirate-weather.apiable.io/)
 
 Scheduling
 ----------
