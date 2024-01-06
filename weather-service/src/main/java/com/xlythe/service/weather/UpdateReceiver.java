@@ -15,15 +15,17 @@ public class UpdateReceiver extends BroadcastReceiver {
     @SuppressWarnings("MissingPermission")
     @Override
     public void onReceive(Context context, Intent intent) {
-        if (Intent.ACTION_MY_PACKAGE_REPLACED.equals(intent.getAction())) {
-            if (OpenWeatherService.isScheduled(context)) {
-                Log.v(TAG, "Rescheduling OpenWeatherService");
-                OpenWeatherService.schedule(context, OpenWeatherService.getApiKey(context));
-            }
-            if (WeatherUndergroundService.isScheduled(context)) {
-                Log.v(TAG, "Rescheduling WeatherUndergroundService");
-                WeatherUndergroundService.schedule(context, WeatherUndergroundService.getApiKey(context));
-            }
+        if (OpenWeatherService.isScheduled(context)) {
+            Log.v(TAG, "Rescheduling OpenWeatherService");
+            OpenWeatherService.schedule(context, OpenWeatherService.getApiKey(context));
+        }
+        if (WeatherUndergroundService.isScheduled(context)) {
+            Log.v(TAG, "Rescheduling WeatherUndergroundService");
+            WeatherUndergroundService.schedule(context, WeatherUndergroundService.getApiKey(context));
+        }
+        if (PirateWeatherService.isScheduled(context)) {
+            Log.v(TAG, "Rescheduling PirateWeatherService");
+            PirateWeatherService.schedule(context, PirateWeatherService.getApiKey(context));
         }
     }
 }
