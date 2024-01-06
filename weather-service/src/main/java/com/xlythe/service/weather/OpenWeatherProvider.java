@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.IntentFilter;
 
 import androidx.annotation.RequiresPermission;
+import androidx.core.content.ContextCompat;
 
 public class OpenWeatherProvider extends WeatherProvider {
     private final String mApiKey;
@@ -54,6 +55,6 @@ public class OpenWeatherProvider extends WeatherProvider {
 
     @Override
     public void registerReceiver(BroadcastReceiver broadcastReceiver) {
-        getContext().registerReceiver(broadcastReceiver, new IntentFilter(OpenWeatherService.ACTION_DATA_CHANGED));
+        ContextCompat.registerReceiver(getContext(), broadcastReceiver, new IntentFilter(OpenWeatherService.ACTION_DATA_CHANGED), ContextCompat.RECEIVER_EXPORTED);
     }
 }

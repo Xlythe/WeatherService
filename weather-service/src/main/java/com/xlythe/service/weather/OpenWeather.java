@@ -15,7 +15,7 @@ import androidx.annotation.WorkerThread;
 
 /**
  * Parses OpenWeather for the current weather at the user's lat/lng.
- *
+ * <p>
  * Supports {@link #getCondition()}, {@link #getCelsius()}, {@link #getFahrenheit()},
  * {@link #getWindKph()}, {@link #getWindMph()}, {@link #getSunrise()}, and {@link #getSunset()}.
  */
