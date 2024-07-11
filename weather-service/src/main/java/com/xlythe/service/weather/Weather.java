@@ -17,6 +17,7 @@ import java.util.Locale;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
+import androidx.core.content.ContextCompat;
 
 public abstract class Weather implements ParcelableUtils.RestorableParcelable {
     static final boolean DEBUG = false;
@@ -438,7 +439,7 @@ public abstract class Weather implements ParcelableUtils.RestorableParcelable {
         }
 
         void register() {
-            context.registerReceiver(this, new IntentFilter(action));
+            ContextCompat.registerReceiver(context, this, new IntentFilter(action), ContextCompat.RECEIVER_NOT_EXPORTED);
         }
 
         void unregister() {

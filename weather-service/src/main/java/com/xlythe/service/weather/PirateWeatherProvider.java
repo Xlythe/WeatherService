@@ -54,6 +54,6 @@ public class PirateWeatherProvider extends WeatherProvider {
 
     @Override
     public void registerReceiver(BroadcastReceiver broadcastReceiver) {
-        ContextCompat.registerReceiver(getContext(), broadcastReceiver, new IntentFilter(PirateWeatherService.ACTION_DATA_CHANGED), ContextCompat.RECEIVER_EXPORTED);
+        ContextCompat.registerReceiver(getContext(), broadcastReceiver, new IntentFilter(PirateWeatherService.ACTION_DATA_CHANGED), ContextCompat.RECEIVER_NOT_EXPORTED);
     }
 }

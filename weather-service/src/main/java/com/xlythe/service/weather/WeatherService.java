@@ -130,6 +130,7 @@ public abstract class WeatherService extends ListenableWorker {
                         null,
                         null,
                         null,
+                        null,
                         null));
 
                 if (DEBUG) {
