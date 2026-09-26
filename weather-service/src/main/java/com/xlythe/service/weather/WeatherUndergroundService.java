@@ -200,12 +200,13 @@ public class WeatherUndergroundService extends LocationBasedService {
     }
 
     @Override
-    protected void parse(String json) throws JSONException {
+    protected void parse(String json, android.location.Location location) throws JSONException {
         WeatherUnderground weather = new WeatherUnderground();
         weather.restore(getContext());
         if (!weather.fetch(getContext(), json)) {
             throw new JSONException("Failed to parse data");
         }
+        weather.setLocation(location.getLatitude(), location.getLongitude());
         weather.save(getContext());
         broadcast(ACTION_DATA_CHANGED);
     }

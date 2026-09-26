@@ -140,6 +140,8 @@ public abstract class Weather implements ParcelableUtils.RestorableParcelable {
     private Time sunset = DEFAULT_SUNSET;
     private int windKph = DEFAULT_WIND_KPH;
     private long lastUpdate;
+    private double latitude = Double.NaN;
+    private double longitude = Double.NaN;
 
     @Nullable
     private WeatherReceiver weatherReceiver;
@@ -171,6 +173,9 @@ public abstract class Weather implements ParcelableUtils.RestorableParcelable {
         sunset = in.readParcelable(Time.class.getClassLoader());
         windKph = in.readInt();
         lastUpdate = in.readLong();
+        // Older saved parcels end here. Keep them readable after adding coordinates.
+        latitude = in.dataAvail() >= 16 ? in.readDouble() : Double.NaN;
+        longitude = in.dataAvail() >= 8 ? in.readDouble() : Double.NaN;
     }
 
     @Override
@@ -182,6 +187,8 @@ public abstract class Weather implements ParcelableUtils.RestorableParcelable {
         out.writeParcelable(sunset, 0);
         out.writeInt(windKph);
         out.writeLong(lastUpdate);
+        out.writeDouble(latitude);
+        out.writeDouble(longitude);
     }
 
     protected void setCelsius(float celsius) {
@@ -267,6 +274,28 @@ public abstract class Weather implements ParcelableUtils.RestorableParcelable {
 
     public long getLastUpdate() {
         return lastUpdate;
+    }
+
+    protected void setLocation(double latitude, double longitude) {
+        this.latitude = latitude;
+        this.longitude = longitude;
+    }
+
+    public boolean hasLocation() {
+        return !Double.isNaN(latitude) && !Double.isInfinite(latitude)
+                && !Double.isNaN(longitude) && !Double.isInfinite(longitude);
+    }
+
+    public static long currentTimeMillis() {
+        return sFakeTime >= 0 ? sFakeTime : System.currentTimeMillis();
+    }
+
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public double getLongitude() {
+        return longitude;
     }
 
     private SharedPreferences getSharedPreferences(Context context) {
@@ -394,14 +423,17 @@ public abstract class Weather implements ParcelableUtils.RestorableParcelable {
                     && Objects.equals(sunrise, a.sunrise)
                     && Objects.equals(sunset, a.sunset)
                     && Objects.equals(windKph, a.windKph)
-                    && Objects.equals(lastUpdate, a.lastUpdate);
+                    && Objects.equals(lastUpdate, a.lastUpdate)
+                    && Double.compare(latitude, a.latitude) == 0
+                    && Double.compare(longitude, a.longitude) == 0;
         }
         return false;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(tempC, condition, moonPhase, sunrise, sunset, windKph, lastUpdate);
+        return Objects.hashCode(tempC, condition, moonPhase, sunrise, sunset, windKph,
+                lastUpdate, latitude, longitude);
     }
 
     @Override

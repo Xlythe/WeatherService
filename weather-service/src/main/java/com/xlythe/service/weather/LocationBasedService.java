@@ -70,7 +70,7 @@ public abstract class LocationBasedService extends WeatherService {
             String input = fetch(requestUrl);
             if (DEBUG) Log.d(TAG, input);
 
-            parse(input);
+            parse(input, location);
         } catch (IOException e) {
             if (DEBUG) Log.e(TAG, "IO Exception", e);
             return Result.RESCHEDULE;
@@ -137,7 +137,14 @@ public abstract class LocationBasedService extends WeatherService {
 
     protected abstract String createUrl(double latitude, double longitude);
 
-    protected abstract void parse(String json) throws JSONException;
+    protected void parse(String json, Location location) throws JSONException {
+        parse(json);
+    }
+
+    /** Kept for existing location-based providers that do not persist coordinates. */
+    protected void parse(String json) throws JSONException {
+        throw new UnsupportedOperationException("Override parse(json, location) or parse(json)");
+    }
 
     private String fetch(String url) throws IOException {
         HttpURLConnection c = null;

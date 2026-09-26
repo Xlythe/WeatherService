@@ -1,6 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'maven-publish'
 apply plugin: 'signing'
+apply plugin: 'com.gradleup.nmcp'
 
 Properties projectProperties = new Properties()
 projectProperties.load(rootProject.file('gradle.properties').newDataInputStream())
@@ -80,17 +81,19 @@ afterEvaluate {
                 }
             }
         }
-        repositories {
-            maven {
-                name = "MavenCentral"
-                url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
-                credentials {
-                    username = localProperties.getProperty("bintray.username")
-                    password = localProperties.getProperty("bintray.password")
-                }
-            }
-        }
     }
+}
+
+nmcp {
+    publishAllPublicationsToCentralPortal {
+        username = localProperties.getProperty("bintray.username")
+        password = localProperties.getProperty("bintray.password")
+        publishingType = "AUTOMATIC"
+    }
+}
+
+tasks.named("publish") {
+    dependsOn("nmcpPublishAllPublicationsToCentralPortal")
 }
 
 signing {

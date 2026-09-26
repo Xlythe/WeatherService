@@ -3,6 +3,7 @@ package com.xlythe.service.weather;
 import android.Manifest;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -167,12 +168,13 @@ public class OpenWeatherService extends LocationBasedService {
     }
 
     @Override
-    protected void parse(String json) throws JSONException {
+    protected void parse(String json, Location location) throws JSONException {
         OpenWeather weather = new OpenWeather();
         weather.restore(getContext());
         if (!weather.fetch(getContext(), json)) {
             throw new JSONException("Failed to parse data");
         }
+        weather.setLocation(location.getLatitude(), location.getLongitude());
         weather.save(getContext());
         broadcast(ACTION_DATA_CHANGED);
     }
