@@ -66,7 +66,7 @@ public class WeatherUndergroundService extends LocationBasedService {
     })
     public static void schedule(Context context, String apiKey) {
         if (DEBUG) Log.d(TAG, "Scheduling WeatherUnderground api");
-        getSharedPreferences(context).edit().putString(BUNDLE_API_KEY, apiKey).apply();
+        setApiKey(context, apiKey);
 
         Constraints constraints = new Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
@@ -112,6 +112,10 @@ public class WeatherUndergroundService extends LocationBasedService {
         return getSharedPreferences(context).getBoolean(BUNDLE_SCHEDULED, false);
     }
 
+    static void setApiKey(Context context, String apiKey) {
+        getSharedPreferences(context).edit().putString(BUNDLE_API_KEY, apiKey).apply();
+    }
+
     public static String getApiKey(Context context) {
         return getSharedPreferences(context).getString(BUNDLE_API_KEY, null);
     }
@@ -130,7 +134,7 @@ public class WeatherUndergroundService extends LocationBasedService {
     private static boolean hasRunRecently(Context context) {
         Weather weather = new WeatherUnderground();
         weather.restore(context);
-        return weather.getLastUpdate() > System.currentTimeMillis() - getFrequency(context) + FLEX_WEATHER;
+        return isFresh(weather.getLastUpdate(), System.currentTimeMillis(), getFrequency(context), FLEX_WEATHER);
     }
 
     private static SharedPreferences getSharedPreferences(Context context) {

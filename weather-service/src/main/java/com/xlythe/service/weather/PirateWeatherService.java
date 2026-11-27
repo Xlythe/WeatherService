@@ -39,7 +39,6 @@ public class PirateWeatherService extends LocationBasedService {
     private static final String BUNDLE_TAG = "tag";
     private static final String BUNDLE_FREQUENCY = "frequency";
 
-    private static final String URL_WEATHER = "https://api.pirateweather.net/forecast/%s/%s %s?units=si&exclude=minutely,hourly,alerts"; // apiKey, latitude, longitude
 
     public PirateWeatherService(@NonNull Context appContext, @NonNull WorkerParameters params) {
         super(appContext, params);
@@ -62,7 +61,7 @@ public class PirateWeatherService extends LocationBasedService {
     })
     public static void schedule(Context context, String apiKey) {
         if (DEBUG) Log.d(TAG, "Scheduling PirateWeather api");
-        getSharedPreferences(context).edit().putString(BUNDLE_API_KEY, apiKey).apply();
+        setApiKey(context, apiKey);
 
         Constraints constraints = new Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
@@ -95,6 +94,10 @@ public class PirateWeatherService extends LocationBasedService {
         return getSharedPreferences(context).getBoolean(BUNDLE_SCHEDULED, false);
     }
 
+    static void setApiKey(Context context, String apiKey) {
+        getSharedPreferences(context).edit().putString(BUNDLE_API_KEY, apiKey).apply();
+    }
+
     public static String getApiKey(Context context) {
         return getSharedPreferences(context).getString(BUNDLE_API_KEY, null);
     }
@@ -113,7 +116,7 @@ public class PirateWeatherService extends LocationBasedService {
     private static boolean hasRunRecently(Context context) {
         Weather weather = new PirateWeather();
         weather.restore(context);
-        return weather.getLastUpdate() > System.currentTimeMillis() - getFrequency(context) + FLEX_WEATHER;
+        return isFresh(weather.getLastUpdate(), System.currentTimeMillis(), getFrequency(context), FLEX_WEATHER);
     }
 
     private static SharedPreferences getSharedPreferences(Context context) {
@@ -163,9 +166,14 @@ public class PirateWeatherService extends LocationBasedService {
 
     @Override
     protected String createUrl(double latitude, double longitude) {
-        return new Builder()
-                    .url(String.format(URL_WEATHER, getApiKey(), latitude, longitude).replaceAll(" ", "%20"))
-                    .build();
+        return forecastUrl(getApiKey(), latitude, longitude);
+    }
+
+    static String forecastUrl(String key, double latitude, double longitude) {
+        return android.net.Uri.parse("https://api.pirateweather.net/forecast").buildUpon()
+                .appendPath(key).appendEncodedPath(latitude + "," + longitude)
+                .appendQueryParameter("units", "si")
+                .appendQueryParameter("exclude", "minutely,hourly,alerts").build().toString();
     }
 
     @Override

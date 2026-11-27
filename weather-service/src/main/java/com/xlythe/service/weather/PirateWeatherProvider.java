@@ -14,6 +14,7 @@ public class PirateWeatherProvider extends WeatherProvider {
     public PirateWeatherProvider(Context context, String apiKey) {
         super(context);
         mApiKey = apiKey;
+        PirateWeatherService.setApiKey(context, apiKey);
     }
 
     @RequiresPermission(allOf = {
