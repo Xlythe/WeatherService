@@ -14,6 +14,7 @@ public class WeatherUndergroundProvider extends WeatherProvider {
     public WeatherUndergroundProvider(Context context, String apiKey) {
         super(context);
         mApiKey = apiKey;
+        WeatherUndergroundService.setApiKey(context, apiKey);
     }
 
     @RequiresPermission(allOf = {

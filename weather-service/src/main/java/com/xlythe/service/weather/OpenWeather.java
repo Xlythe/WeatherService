@@ -9,6 +9,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Calendar;
+import java.util.Locale;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.WorkerThread;
@@ -81,25 +82,25 @@ public class OpenWeather extends Weather {
     }
 
     private static Condition toCondition(@NonNull String condition) {
-        condition = condition.toLowerCase();
+        condition = condition.toLowerCase(Locale.ROOT);
         if (condition.contains("snow")) {
             return Condition.SNOW;
         }
-        if (condition.contains("rain") || condition.contains("storm")) {
+        if (condition.contains("rain") || condition.contains("storm") || condition.contains("drizzle")) {
             return Condition.RAIN;
         }
-        if (condition.contains("cloud")) {
+        if (condition.contains("cloud") || condition.contains("fog") || condition.contains("mist")) {
             return Condition.CLOUDY;
         }
         return Condition.SUNNY;
     }
 
     private static float toCelsius(double kelvin) {
-        return (float) (kelvin - 273);
+        return (float) (kelvin - 273.15);
     }
 
-    private static int toKilometers(double kilometers) {
-        return (int) kilometers;
+    private static int toKilometers(double metersPerSecond) {
+        return (int) Math.round(metersPerSecond * 3.6);
     }
 
     private static int getHour(long timeInMillis) {

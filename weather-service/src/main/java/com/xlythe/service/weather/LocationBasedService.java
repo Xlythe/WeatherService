@@ -3,6 +3,7 @@ package com.xlythe.service.weather;
 import android.Manifest;
 import android.content.Context;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
@@ -64,18 +65,17 @@ public abstract class LocationBasedService extends WeatherService {
 
             if (DEBUG) Log.d(TAG, "Creating url");
             String requestUrl = createUrl(location);
-            if (DEBUG) Log.d(TAG, requestUrl);
 
             if (DEBUG) Log.d(TAG, "Fetching url");
             String input = fetch(requestUrl);
-            if (DEBUG) Log.d(TAG, input);
 
             parse(input, location);
         } catch (IOException e) {
             if (DEBUG) Log.e(TAG, "IO Exception", e);
             return Result.RESCHEDULE;
         } catch (JSONException e) {
-            if (DEBUG) Log.e(TAG, "JSON Exception", e);
+            Log.w(TAG, "Weather provider returned malformed data");
+            return Result.FAILURE;
         }
 
         return Result.SUCCESS;
@@ -249,28 +249,13 @@ public abstract class LocationBasedService extends WeatherService {
             }
         }
 
-        private String params() {
-            StringBuilder toString = new StringBuilder();
-            for (Pair<String, String> param : params) {
-                // Already added a param before. Append '&'.
-                if (toString.length() > 0) {
-                    toString.append('&');
-                }
-
-                // Add the params
-                toString.append(param.first);
-                toString.append('=');
-                toString.append(param.second);
-            }
-            if (toString.length() > 0) {
-                toString.insert(0, '?');
-            }
-            return toString.toString();
-        }
-
         public String build() {
             verify();
-            return url + params();
+            Uri.Builder builder = Uri.parse(url).buildUpon();
+            for (Pair<String, String> param : params) {
+                builder.appendQueryParameter(param.first, param.second);
+            }
+            return builder.build().toString();
         }
     }
 }

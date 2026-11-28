@@ -3,6 +3,7 @@ package com.xlythe.service.weather;
 import android.Manifest;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -66,7 +67,7 @@ public class WeatherUndergroundService extends LocationBasedService {
     })
     public static void schedule(Context context, String apiKey) {
         if (DEBUG) Log.d(TAG, "Scheduling WeatherUnderground api");
-        getSharedPreferences(context).edit().putString(BUNDLE_API_KEY, apiKey).apply();
+        setApiKey(context, apiKey);
 
         Constraints constraints = new Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
@@ -112,6 +113,10 @@ public class WeatherUndergroundService extends LocationBasedService {
         return getSharedPreferences(context).getBoolean(BUNDLE_SCHEDULED, false);
     }
 
+    static void setApiKey(Context context, String apiKey) {
+        getSharedPreferences(context).edit().putString(BUNDLE_API_KEY, apiKey).apply();
+    }
+
     public static String getApiKey(Context context) {
         return getSharedPreferences(context).getString(BUNDLE_API_KEY, null);
     }
@@ -130,7 +135,7 @@ public class WeatherUndergroundService extends LocationBasedService {
     private static boolean hasRunRecently(Context context) {
         Weather weather = new WeatherUnderground();
         weather.restore(context);
-        return weather.getLastUpdate() > System.currentTimeMillis() - getFrequency(context) + FLEX_WEATHER;
+        return isFresh(weather.getLastUpdate(), System.currentTimeMillis(), getFrequency(context), FLEX_WEATHER);
     }
 
     private static SharedPreferences getSharedPreferences(Context context) {
@@ -200,7 +205,7 @@ public class WeatherUndergroundService extends LocationBasedService {
     }
 
     @Override
-    protected void parse(String json, android.location.Location location) throws JSONException {
+    protected void parse(String json, Location location) throws JSONException {
         WeatherUnderground weather = new WeatherUnderground();
         weather.restore(getContext());
         if (!weather.fetch(getContext(), json)) {

@@ -1,18 +1,18 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 35
+    compileSdk 37
 
     defaultConfig {
         applicationId "com.xlythe.sample.weather"
-        minSdkVersion 21
-        targetSdkVersion 35
+        minSdk 21
+        targetSdk 37
         versionCode 1
         versionName "1.0.0"
     }
     buildTypes {
         release {
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
     compileOptions {
@@ -28,6 +28,6 @@ android {
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation project(':weather-service')
-    implementation 'androidx.appcompat:appcompat:+'
-    implementation 'androidx.legacy:legacy-support-v4:+'
+    implementation 'androidx.appcompat:appcompat:1.7.1'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
 }

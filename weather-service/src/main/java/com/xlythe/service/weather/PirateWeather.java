@@ -11,6 +11,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -72,6 +73,7 @@ public class PirateWeather extends Weather {
             if (DEBUG)
                 Log.d(TAG, "PirateWeather json: " + root);
 
+            if (!root.has("currently") && !root.has("daily")) return false;
             if (root.has("currently")) {
                 // Parse the json
                 JSONObject object = root.getJSONObject("currently");
@@ -79,6 +81,7 @@ public class PirateWeather extends Weather {
                 // Start persisting values
                 setCondition(PirateWeather.toCondition(object.getString("summary")));
                 setCelsius((float) object.getDouble("temperature"));
+                if (object.has("windSpeed")) setWindKph((int) Math.round(object.getDouble("windSpeed") * 3.6));
 
                 if (DEBUG)
                     Log.d(TAG, "Weather set to " + getCondition() + ", " + getFahrenheit() + "F");
@@ -87,7 +90,7 @@ public class PirateWeather extends Weather {
             if (root.has("daily")) {
                 // Parse the json
                 JSONObject data = root.getJSONObject("daily").getJSONArray("data").getJSONObject(0);
-                setMoonPhase(toMoonPhase(data.getInt("moonPhase")));
+                setMoonPhase(toMoonPhase(data.getDouble("moonPhase")));
                 if (DEBUG)
                     Log.d(TAG, "Moon phase set to " + getMoonPhase());
 
@@ -107,7 +110,7 @@ public class PirateWeather extends Weather {
     }
 
     private static Condition toCondition(@NonNull String condition) {
-        condition = condition.toLowerCase();
+        condition = condition.toLowerCase(Locale.ROOT);
         if (condition.contains("snow")) {
             return Condition.SNOW;
         }
