@@ -3,6 +3,8 @@ package com.xlythe.service.weather;
 import android.Manifest;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -170,14 +172,14 @@ public class PirateWeatherService extends LocationBasedService {
     }
 
     static String forecastUrl(String key, double latitude, double longitude) {
-        return android.net.Uri.parse("https://api.pirateweather.net/forecast").buildUpon()
+        return Uri.parse("https://api.pirateweather.net/forecast").buildUpon()
                 .appendPath(key).appendEncodedPath(latitude + "," + longitude)
                 .appendQueryParameter("units", "si")
                 .appendQueryParameter("exclude", "minutely,hourly,alerts").build().toString();
     }
 
     @Override
-    protected void parse(String json, android.location.Location location) throws JSONException {
+    protected void parse(String json, Location location) throws JSONException {
         PirateWeather weather = new PirateWeather();
         weather.restore(getContext());
         if (!weather.fetch(getContext(), json)) {

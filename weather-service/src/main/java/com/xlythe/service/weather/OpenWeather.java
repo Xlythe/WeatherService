@@ -9,6 +9,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Calendar;
+import java.util.Locale;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.WorkerThread;
@@ -81,7 +82,7 @@ public class OpenWeather extends Weather {
     }
 
     private static Condition toCondition(@NonNull String condition) {
-        condition = condition.toLowerCase(java.util.Locale.ROOT);
+        condition = condition.toLowerCase(Locale.ROOT);
         if (condition.contains("snow")) {
             return Condition.SNOW;
         }

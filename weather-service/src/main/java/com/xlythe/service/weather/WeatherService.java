@@ -3,6 +3,7 @@ package com.xlythe.service.weather;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -13,6 +14,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
 import androidx.annotation.WorkerThread;
 import androidx.work.OneTimeWorkRequest;
+import androidx.work.OutOfQuotaPolicy;
 import androidx.work.WorkManager;
 import androidx.work.Data;
 import androidx.work.ListenableWorker;
@@ -129,8 +131,8 @@ public abstract class WeatherService extends ListenableWorker {
     protected static void runImmediately(Context context, Class<? extends WeatherService> clazz, @Nullable Bundle extras) {
         Data input = extras == null ? new Data.Builder().putBoolean(MANUAL_REFRESH, true).build() : toData(extras);
         OneTimeWorkRequest.Builder request = new OneTimeWorkRequest.Builder(clazz).setInputData(input);
-        if (android.os.Build.VERSION.SDK_INT >= 31) {
-            request.setExpedited(androidx.work.OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST);
+        if (Build.VERSION.SDK_INT >= 31) {
+            request.setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST);
         }
         WorkManager.getInstance(context).enqueue(request.build());
     }

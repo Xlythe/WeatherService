@@ -3,6 +3,7 @@ package com.xlythe.service.weather;
 import android.Manifest;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -204,7 +205,7 @@ public class WeatherUndergroundService extends LocationBasedService {
     }
 
     @Override
-    protected void parse(String json, android.location.Location location) throws JSONException {
+    protected void parse(String json, Location location) throws JSONException {
         WeatherUnderground weather = new WeatherUnderground();
         weather.restore(getContext());
         if (!weather.fetch(getContext(), json)) {

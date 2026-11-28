@@ -3,6 +3,7 @@ package com.xlythe.service.weather;
 import android.Manifest;
 import android.content.Context;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
@@ -250,7 +251,7 @@ public abstract class LocationBasedService extends WeatherService {
 
         public String build() {
             verify();
-            android.net.Uri.Builder builder = android.net.Uri.parse(url).buildUpon();
+            Uri.Builder builder = Uri.parse(url).buildUpon();
             for (Pair<String, String> param : params) {
                 builder.appendQueryParameter(param.first, param.second);
             }

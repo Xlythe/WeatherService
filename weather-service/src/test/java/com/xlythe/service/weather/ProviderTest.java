@@ -2,15 +2,14 @@ package com.xlythe.service.weather;
 
 import android.content.Context;
 import android.net.Uri;
+import android.os.Bundle;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
-import org.robolectric.annotation.Config;
 import static org.junit.Assert.*;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 37)
 public class ProviderTest {
     private final Context context = RuntimeEnvironment.getApplication();
 
@@ -71,12 +70,12 @@ public class ProviderTest {
     }
 
     @Test public void workDataRoundTripsScalarAndArrayExtras() {
-        android.os.Bundle extras = new android.os.Bundle();
+        Bundle extras = new Bundle();
         extras.putBoolean("manual", true);
         extras.putLong("id", 12345678901L);
         extras.putIntArray("days", new int[] {1, 5});
         extras.putBooleanArray("flags", new boolean[] {true, false});
-        android.os.Bundle result = WeatherService.toBundle(WeatherService.toData(extras));
+        Bundle result = WeatherService.toBundle(WeatherService.toData(extras));
         assertTrue(result.getBoolean("manual"));
         assertEquals(12345678901L, result.getLong("id"));
         assertArrayEquals(extras.getIntArray("days"), result.getIntArray("days"));

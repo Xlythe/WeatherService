@@ -11,6 +11,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -109,7 +110,7 @@ public class PirateWeather extends Weather {
     }
 
     private static Condition toCondition(@NonNull String condition) {
-        condition = condition.toLowerCase(java.util.Locale.ROOT);
+        condition = condition.toLowerCase(Locale.ROOT);
         if (condition.contains("snow")) {
             return Condition.SNOW;
         }

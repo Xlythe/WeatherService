@@ -17,7 +17,10 @@ android {
         minSdk 21
         targetSdk 37
     }
-    testOptions { unitTests.includeAndroidResources = true }
+    testOptions.unitTests {
+        includeAndroidResources = true
+        all { maxHeapSize = "2g" }
+    }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -35,17 +38,24 @@ android {
 }
 
 dependencies {
-    testImplementation 'junit:junit:4.13.2'
-    testImplementation 'org.robolectric:robolectric:4.18.1'
+    testImplementation 'junit:junit:[4.13.2,)'
+    testImplementation 'org.robolectric:robolectric:[4.18.1,)'
     api fileTree(include: ['*.jar'], dir: 'libs')
-    api 'androidx.appcompat:appcompat:1.7.1'
-    api 'androidx.work:work-runtime:2.10.5'
-    api 'com.google.android.gms:play-services-location:21.3.0'
+    // Prefer API 21-compatible releases while allowing consumers to select newer versions.
+    api('androidx.appcompat:appcompat:[1.7.1,)') {
+        version { prefer '1.7.1' }
+    }
+    api('androidx.work:work-runtime:[2.10.5,)') {
+        version { prefer '2.10.5' }
+    }
+    api('com.google.android.gms:play-services-location:[21.3.0,)') {
+        version { prefer '21.3.0' }
+    }
     constraints {
-        implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.0") {
+        implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:[1.8.0,)") {
             because("kotlin-stdlib-jdk7 is now a part of kotlin-stdlib")
         }
-        implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.0") {
+        implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:[1.8.0,)") {
             because("kotlin-stdlib-jdk8 is now a part of kotlin-stdlib")
         }
     }
